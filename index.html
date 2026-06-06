@@ -2399,7 +2399,9 @@ function toggleAbonnementen(rek) {
 const _fbCache = {};
 let _fbReady = false;
 let _fbDb = null;
-let _fbListeners = {}; // key -> unsubscribe fn
+let _fbListeners = {};
+let _fbWriting = false;      // true terwijl wij zelf aan het schrijven zijn
+let _fbWriteTimer = null;    // debounce timer
 const _realLocalStorage = window.localStorage; // Bewaar echte localStorage vóór onze override
 
 function getKey() { return `budget_${currentYear}-${String(currentMonth+1).padStart(2,'0')}`; }
@@ -2436,6 +2438,8 @@ function initFirebase() {
       // Update cache volledig
       Object.keys(_fbCache).forEach(k => delete _fbCache[k]);
       Object.assign(_fbCache, val);
+      // Sla re-render over als wij zelf net aan het schrijven zijn (voorkomt toetsenbord-verdwijning)
+      if (_fbWriting) return;
       renderAll();
       recalcAll();
       renderMaandNotitie();
@@ -2475,10 +2479,18 @@ function fbGet(k) {
 
 function fbSet(k, val) {
   _fbCache[fbKey(k)] = val;
-  if (_fbReady && window._firebaseDatabase) {
+  if (!_fbReady || !window._firebaseDatabase) return;
+  // Debounce: markeer dat wij schrijven, wacht 800ms na laatste toetsaanslag
+  _fbWriting = true;
+  if (_fbWriteTimer) clearTimeout(_fbWriteTimer);
+  _fbWriteTimer = setTimeout(() => {
     const { ref, set, db } = window._firebaseDatabase;
-    set(ref(db, 'data/' + fbKey(k)), val);
-  }
+    set(ref(db, 'data/' + fbKey(k)), val).then(() => {
+      // Na bevestiging van Firebase: schrijven klaar
+      // Wacht nog even zodat de echo-update van Firebase genegeerd wordt
+      setTimeout(() => { _fbWriting = false; }, 300);
+    });
+  }, 800);
 }
 
 function fbRemove(k) {
