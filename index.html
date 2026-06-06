@@ -2044,22 +2044,28 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
           </div>
         </button>
 
-        <!-- Per persoon grafiek knoppen — geen mini-balken, enkel klikbaar -->
-        <div class="two-mini-charts">
+        <!-- Per persoon grafiek knoppen — drie knoppen -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
           <button class="grafiek-open-btn" onclick="openGrafiekOverlay('man')" style="border-color:var(--man);background:linear-gradient(145deg,#EDF0FC,#E8ECFA);justify-content:center;min-height:72px">
-            <span style="font-size:24px">📊</span>
-            <span style="color:var(--man);font-weight:700;font-size:14px;margin-top:4px">💙 David</span>
-            <span style="font-size:11px;color:var(--muted);margin-top:2px">Tik voor grafiek</span>
+            <span style="font-size:20px">📊</span>
+            <span style="color:var(--man);font-weight:700;font-size:13px;margin-top:4px">💙 David</span>
+            <span style="font-size:10px;color:var(--muted);margin-top:2px">Tik voor grafiek</span>
           </button>
           <button class="grafiek-open-btn" onclick="openGrafiekOverlay('vrouw')" style="border-color:var(--vrouw);background:linear-gradient(145deg,#FCE8F2,#FAE0EE);justify-content:center;min-height:72px">
-            <span style="font-size:24px">📊</span>
-            <span style="color:var(--vrouw);font-weight:700;font-size:14px;margin-top:4px">🌺 Lauren</span>
-            <span style="font-size:11px;color:var(--muted);margin-top:2px">Tik voor grafiek</span>
+            <span style="font-size:20px">📊</span>
+            <span style="color:var(--vrouw);font-weight:700;font-size:13px;margin-top:4px">🌺 Lauren</span>
+            <span style="font-size:10px;color:var(--muted);margin-top:2px">Tik voor grafiek</span>
+          </button>
+          <button class="grafiek-open-btn" onclick="openGrafiekOverlay('gemeenschappelijk')" style="border-color:var(--gem);background:linear-gradient(145deg,#E3F5EE,#D0EEE4);justify-content:center;min-height:72px">
+            <span style="font-size:20px">📊</span>
+            <span style="color:var(--gem);font-weight:700;font-size:13px;margin-top:4px">🏡 Gem.</span>
+            <span style="font-size:10px;color:var(--muted);margin-top:2px">Tik voor grafiek</span>
           </button>
         </div>
-        <!-- Verborgen containers voor renderGrafiek (enkel gezinsgrafiek zichtbaar) -->
+        <!-- Verborgen containers voor renderGrafiek -->
         <div id="bar-chart-man" style="display:none"></div>
         <div id="bar-chart-vrouw" style="display:none"></div>
+        <div id="bar-chart-gem" style="display:none"></div>
 
         <div id="overzicht-rekeningen"></div>
 
@@ -2351,7 +2357,8 @@ const SCHEMA = {
       { key:'kadastraal',        label:'📄 Kadastraal inkomen',       tag:'vast', persist:true },
       { key:'woningpolis',       label:'🏠 Woningpolis',              tag:'vast', persist:true },
       { key:'gezinspolis',       label:'🛡️ Gezinspolis',              tag:'vast', persist:true },
-      { key:'abonnementen',      label:'📱 Abonnementen',          tag:'vast', persist:true, abonnementen: true },
+      { key:'schuldsaldo',       label:'💳 Schuldsaldo',              tag:'vast', persist:true },
+      { key:'abonnementen',      label:'📱 Abonnementen',             tag:'vast', persist:true, abonnementen: true },
       { key:'water',             label:'💧 Water',                    tag:'kwartaal' },
       { key:'boodschappen',      label:'🛒 Boodschappen',             tag:'var'  },
       { key:'belastingen',       label:'📜 Belastingen',              tag:'var'  },
@@ -2359,7 +2366,7 @@ const SCHEMA = {
       { key:'lias_kledij',       label:'🛍️ Lias kledij',              tag:'var'  },
       { key:'lias_baby',         label:'🧸 Lias pampers/doekjes/zeep',tag:'var'  },
       { key:'bol',               label:'📦 Bol',                      tag:'var'  },
-      { key:'overige',           label:'💬 Overige',               tag:'var',  overige: true },
+      { key:'overige',           label:'💬 Overige',                  tag:'var',  overige: true },
     ]
   }
 };
@@ -2438,6 +2445,8 @@ function initFirebase() {
       // Update cache volledig
       Object.keys(_fbCache).forEach(k => delete _fbCache[k]);
       Object.assign(_fbCache, val);
+      // Invalideer de vastvar in-memory cache zodat hij opnieuw ingeladen wordt
+      _vastVarCache = null;
       // Sla re-render over als wij zelf net aan het schrijven zijn (voorkomt toetsenbord-verdwijning)
       if (_fbWriting) return;
       renderAll();
@@ -2628,50 +2637,53 @@ function tagHtml(tag) {
   return `<span class="row-tag tag-${tag}">${m[tag] || tag}</span>`;
 }
 
-// ===== VAST/VARIABEL TOGGLE PER ITEM (opgeslagen per maand) =====
-function getVastVarKey() {
-  return sessionKey('vastvar_' + currentYear + '-' + String(currentMonth+1).padStart(2,'0'));
-}
+// ===== VAST/VARIABEL TOGGLE PER ITEM =====
+// Vastvar wordt opgeslagen als één enkel object in Firebase: 'vastvar_global'
+// Sleutel: rek_type_key → 'vast' of 'var'
+// Dit is NIET per maand — de keuze geldt globaal voor alle maanden.
+
+let _vastVarCache = null; // in-memory cache, geladen bij eerste gebruik
+
 function loadVastVar() {
-  try { return JSON.parse(localStorage.getItem(getVastVarKey()) || '{}'); } catch { return {}; }
+  if (_vastVarCache !== null) return _vastVarCache;
+  try {
+    const raw = fbGet('vastvar_global');
+    _vastVarCache = raw ? JSON.parse(raw) : {};
+  } catch { _vastVarCache = {}; }
+  return _vastVarCache;
 }
+
 function saveVastVar(d) {
-  localStorage.setItem(getVastVarKey(), JSON.stringify(d));
+  _vastVarCache = d;
+  // Schrijf direct naar Firebase zonder debounce
+  if (_fbReady && window._firebaseDatabase) {
+    const { ref, set, db } = window._firebaseDatabase;
+    set(ref(db, 'data/vastvar_global'), JSON.stringify(d));
+  } else {
+    fbSet('vastvar_global', JSON.stringify(d));
+  }
 }
+
 function getItemVastVar(rek, type, key) {
   const d = loadVastVar();
   return d[rek + '_' + type + '_' + key] || null;
 }
+
 function setItemVastVar(rek, type, key, val) {
-  // Sla op voor huidige maand
   const d = loadVastVar();
   d[rek + '_' + type + '_' + key] = val;
   saveVastVar(d);
-
-  // Propageer naar ALLE andere maanden (verleden 24 + toekomst 24)
-  // zodat vast/variabel consistent is over alle maanden
-  for (let offset = -24; offset <= 24; offset++) {
-    if (offset === 0) continue; // huidige maand al gedaan
-    let m = currentMonth + offset, y = currentYear;
-    while (m < 0)  { m += 12; y--; }
-    while (m > 11) { m -= 12; y++; }
-    const otherVVKey = sessionKey('vastvar_' + y + '-' + String(m+1).padStart(2,'0'));
-    let otherVV = {};
-    try { otherVV = JSON.parse(localStorage.getItem(otherVVKey) || '{}'); } catch {}
-    const mapKey = rek + '_' + type + '_' + key;
-    otherVV[mapKey] = val; // Altijd overschrijven voor consistentie
-    localStorage.setItem(otherVVKey, JSON.stringify(otherVV));
-  }
-
   renderAll();
   recalcAll();
 }
+
 function resolveVastVar(item, rek, type) {
   const override = getItemVastVar(rek, type, item.key);
   if (override) return override;
   if (item.tag === 'vast' || item.tag === 'kwartaal') return 'vast';
   return 'var';
 }
+
 function vastVarBadgeHtml(item, rek, type) {
   const cur = resolveVastVar(item, rek, type);
   const isVast = cur === 'vast';
@@ -3208,8 +3220,10 @@ function recalcAll() {
   renderGemInkomstenCard(c.bijDavid, c.bijLauren);
 
   // === OVERZICHT ===
+  // Totale uitgaven gezin = persoonlijke uitgaven + bijdragen aan gem. rekening
+  // Gem. uitgaven worden NIET apart opgeteld — die worden al gedekt door de bijdragen
   const totalIn    = c.davidIn + c.laurenIn;
-  const totalUit   = c.davidUit + c.laurenUit + c.gemUit;
+  const totalUit   = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren;
   const totalSpaar = c.davidSpaar + c.laurenSpaar;
   const totalVrij  = totalIn - totalUit - totalSpaar;
 
@@ -3248,7 +3262,7 @@ function recalcAll() {
 // ===== OVERZICHT REKENINGEN =====
 function renderOverzichtRekeningen(c) {
   const totalIn   = c.davidIn + c.laurenIn;
-  const totalUit  = c.davidUit + c.laurenUit + c.gemUit;
+  const totalUit  = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren;
   const totalSpaar= c.davidSpaar + c.laurenSpaar;
   const totalSaldo= totalIn - totalUit - totalSpaar;
   document.getElementById('overzicht-rekeningen').innerHTML = `
@@ -3256,7 +3270,7 @@ function renderOverzichtRekeningen(c) {
       <div class="rekening-hdr" style="background:linear-gradient(135deg,#EDF0FC,#E8ECFA);border-bottom-color:rgba(91,111,191,0.2)">
         <div class="rek-icon icon-man">💙</div>
         <span class="rek-naam" style="color:var(--man)">David</span>
-        <span class="rek-saldo ${c.davidSaldo >= 0 ? 'saldo-pos' : 'saldo-neg'}">${fmt(c.davidSaldo)}</span>
+        <span class="rek-saldo ${c.davidBeschikbaar >= 0 ? 'saldo-pos' : 'saldo-neg'}">${fmt(c.davidBeschikbaar)}</span>
       </div>
       <div class="rekening-body" style="grid-template-columns:1fr 1fr 1fr 1fr">
         <div class="rek-stat">Inkomsten<span style="color:var(--income)">${fmt(c.davidIn)}</span></div>
@@ -3269,7 +3283,7 @@ function renderOverzichtRekeningen(c) {
       <div class="rekening-hdr" style="background:linear-gradient(135deg,#FCE8F2,#FAE0EE);border-bottom-color:rgba(192,64,122,0.15)">
         <div class="rek-icon icon-vrouw">🌺</div>
         <span class="rek-naam" style="color:var(--vrouw)">Lauren</span>
-        <span class="rek-saldo ${c.laurenSaldo >= 0 ? 'saldo-pos' : 'saldo-neg'}">${fmt(c.laurenSaldo)}</span>
+        <span class="rek-saldo ${c.laurenBeschikbaar >= 0 ? 'saldo-pos' : 'saldo-neg'}">${fmt(c.laurenBeschikbaar)}</span>
       </div>
       <div class="rekening-body" style="grid-template-columns:1fr 1fr 1fr 1fr">
         <div class="rek-stat">Inkomsten<span style="color:var(--income)">${fmt(c.laurenIn)}</span></div>
@@ -3294,7 +3308,7 @@ function renderOverzichtRekeningen(c) {
       <div class="rekening-hdr" style="background:linear-gradient(135deg,#ECEAF8,#E4E0F5);border-bottom-color:rgba(80,64,160,0.15)">
         <div class="rek-icon" style="background:linear-gradient(135deg,#5040A0,#7060C0);color:white;font-size:18px">👨‍👩‍👧</div>
         <span class="rek-naam" style="font-weight:700;color:var(--totaal)">Totaal gezin</span>
-        <span class="rek-saldo ${totalSaldo >= 0 ? 'saldo-pos' : 'saldo-neg'}">${fmt(totalSaldo)}</span>
+        <span class="rek-saldo ${totalSaldo >= 0 ? 'saldo-pos' : 'saldo-neg'}">${fmt(totalIn - totalUit)}</span>
       </div>
       <div class="rekening-body" style="grid-template-columns:1fr 1fr 1fr">
         <div class="rek-stat">Inkomsten<span style="color:var(--income);font-weight:600">${fmt(totalIn)}</span></div>
@@ -3311,28 +3325,61 @@ function buildYearData(rek) {
     const mk = `budget_${currentYear}-${String(m+1).padStart(2,'0')}`;
     let data = {};
     try { data = JSON.parse(localStorage.getItem(mk) || '{}'); } catch {}
-    let tIn = 0, tUit = 0;
+    let tIn = 0, tUit = 0, tBij = 0;
+
     if (!rek) {
+      // Gezinstotaal = persoonlijke uitgaven + bijdragen aan gem. rekening
+      // Gem. uitgaven worden NIET apart opgeteld — anders dubbeltelling
       ['man','vrouw'].forEach(r => {
-        SCHEMA[r].inkomsten.forEach(i => { tIn += parseFloat(data[r]?.inkomsten?.[i.key]) || 0; });
-        SCHEMA[r].uitgaven.forEach(i => { if (!i.overige) tUit += parseFloat(data[r]?.uitgaven?.[i.key]) || 0; });
+        SCHEMA[r].inkomsten.forEach(i => { tIn += parseBedrag(data[r]?.inkomsten?.[i.key]) || 0; });
+        SCHEMA[r].uitgaven.forEach(i => {
+          if (i.overige) {
+            try { const ov = JSON.parse(localStorage.getItem(`overige_${r}_uitgaven_${mk}`) || '[]'); ov.forEach(o => { tUit += parseBedrag(o.bedrag) || 0; }); } catch {}
+          } else if (i.abonnementen) {
+            getAbonnementenItems(r).forEach(ab => { tUit += parseBedrag(data[r]?.abonnementen?.[ab.key]) || 0; });
+          } else {
+            tUit += parseBedrag(data[r]?.uitgaven?.[i.key]) || 0;
+          }
+        });
+        // Bijdrage gem. rekening telt als uitgave voor elk persoon
+        tUit += parseBedrag(data[r]?.bijdrage?.gem) || 0;
       });
+
+    } else if (rek === 'gemeenschappelijk') {
+      // Gemeenschappelijk: inkomsten = bijdragen van David + Lauren, uitgaven = gem. uitgaven
+      tIn += parseBedrag(data.man?.bijdrage?.gem) || 0;
+      tIn += parseBedrag(data.vrouw?.bijdrage?.gem) || 0;
       SCHEMA.gemeenschappelijk.uitgaven.forEach(i => {
-        if (i.overige) return;
-        if (i.abonnementen) { getAbonnementenItems('gemeenschappelijk').forEach(ab => { tUit += parseBedrag(data?.gemeenschappelijk?.abonnementen?.[ab.key]) || 0; }); }
-        else { let v = parseBedrag(data?.gemeenschappelijk?.uitgaven?.[i.key]) || 0; if (i.tag==='kwartaal') v/=3; tUit += v; }
+        if (i.overige) {
+          try { const ov = JSON.parse(localStorage.getItem(`overige_gemeenschappelijk_uitgaven_${mk}`) || '[]'); ov.forEach(o => { tUit += parseBedrag(o.bedrag) || 0; }); } catch {}
+        } else if (i.abonnementen) {
+          getAbonnementenItems('gemeenschappelijk').forEach(ab => { tUit += parseBedrag(data?.gemeenschappelijk?.abonnementen?.[ab.key]) || 0; });
+        } else {
+          let v = parseBedrag(data?.gemeenschappelijk?.uitgaven?.[i.key]) || 0;
+          if (i.tag === 'kwartaal') v /= 3;
+          tUit += v;
+        }
       });
+
     } else {
+      // Per persoon (man of vrouw) — bijdrage apart bijhouden voor derde balk
       SCHEMA[rek].inkomsten.forEach(i => { tIn += parseBedrag(data[rek]?.inkomsten?.[i.key]) || 0; });
       SCHEMA[rek].uitgaven.forEach(i => {
-        if (i.overige) return;
-        if (i.abonnementen) { getAbonnementenItems(rek).forEach(ab => { tUit += parseBedrag(data[rek]?.abonnementen?.[ab.key]) || 0; }); }
-        else { tUit += parseBedrag(data[rek]?.uitgaven?.[i.key]) || 0; }
+        if (i.overige) {
+          try { const ov = JSON.parse(localStorage.getItem(`overige_${rek}_uitgaven_${mk}`) || '[]'); ov.forEach(o => { tUit += parseBedrag(o.bedrag) || 0; }); } catch {}
+        } else if (i.abonnementen) {
+          getAbonnementenItems(rek).forEach(ab => { tUit += parseBedrag(data[rek]?.abonnementen?.[ab.key]) || 0; });
+        } else {
+          tUit += parseBedrag(data[rek]?.uitgaven?.[i.key]) || 0;
+        }
       });
+      // Bijdrage gem. rekening als aparte waarde
+      tBij = parseBedrag(data[rek]?.bijdrage?.gem) || 0;
     }
-    allData.push({ m, in: tIn, out: tUit, lbl: MAANDEN[m].substring(0,3) });
-    if (tIn > maxVal) maxVal = tIn;
-    if (tUit > maxVal) maxVal = tUit;
+
+    allData.push({ m, in: tIn, out: tUit, bij: tBij, lbl: MAANDEN[m].substring(0,3) });
+    if (tIn  > maxVal) maxVal = tIn;
+    if (tUit + tBij > maxVal) maxVal = tUit + tBij;
   }
   return { allData, maxVal };
 }
@@ -3341,17 +3388,20 @@ function renderBarChart(containerId, allData, maxVal, maxH) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = allData.map(d => {
-    const empty = d.in === 0 && d.out === 0;
+    const hasBij = d.bij > 0;
+    const empty = d.in === 0 && d.out === 0 && !hasBij;
     const hIn  = (!empty && maxVal > 0 && d.in  > 0) ? Math.max((d.in  / maxVal) * maxH, 3) : 0;
     const hOut = (!empty && maxVal > 0 && d.out > 0) ? Math.max((d.out / maxVal) * maxH, 3) : 0;
+    const hBij = (!empty && maxVal > 0 && hasBij)    ? Math.max((d.bij / maxVal) * maxH, 3) : 0;
     const cur  = d.m === currentMonth;
     return `
     <div class="bar-group ${cur?'current':''}">
       <div class="bar-pair" style="height:${maxH}px;align-items:flex-end;">
         ${empty
           ? `<div style="width:16px;height:3px;background:var(--border);border-radius:2px;opacity:0.4;align-self:flex-end"></div>`
-          : `<div class="bar-in" style="height:${hIn}px;${hIn===0?'display:none':''}"></div>
-             <div class="bar-out" style="height:${hOut}px;${hOut===0?'display:none':''}"></div>`
+          : `<div class="bar-in"  style="height:${hIn}px;${hIn===0?'display:none':''}"></div>
+             <div class="bar-out" style="height:${hOut}px;${hOut===0?'display:none':''}"></div>
+             ${hBij > 0 ? `<div style="height:${hBij}px;width:6px;background:linear-gradient(180deg,#58A6FF,#1A64C8);border-radius:3px 3px 0 0;flex-shrink:0"></div>` : ''}`
         }
       </div>
       <div class="bar-lbl">${d.lbl}</div>
@@ -3367,6 +3417,8 @@ function renderGrafiek() {
   renderBarChart('bar-chart-man', david.allData, david.maxVal, 55);
   const lauren = buildYearData('vrouw');
   renderBarChart('bar-chart-vrouw', lauren.allData, lauren.maxVal, 55);
+  const gem = buildYearData('gemeenschappelijk');
+  renderBarChart('bar-chart-gem', gem.allData, gem.maxVal, 55);
 }
 
 // ===== RAPPORT =====
@@ -3454,11 +3506,12 @@ function renderRapportContent(tab) {
   try { data = JSON.parse(localStorage.getItem(mk) || '{}'); } catch {}
 
   if (tab === 'totaal') {
-    const totalIn   = c.davidIn + c.laurenIn;
-    const totalBij  = c.bijDavid + c.bijLauren;
-    const totalUit  = c.davidUit + c.laurenUit + c.gemUit;
-    const totalSpaar= c.davidSpaar + c.laurenSpaar;
-    const totalSaldo= totalIn - totalUit - totalSpaar;
+    // Totale uitgaven = persoonlijke uitgaven + bijdragen (gem. uitgaven zitten al verwerkt via bijdragen)
+    const totalIn    = c.davidIn + c.laurenIn;
+    const totalBij   = c.bijDavid + c.bijLauren;
+    const totalUit   = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren;
+    const totalSpaar = c.davidSpaar + c.laurenSpaar;
+    const totalSaldo = totalIn - totalUit - totalSpaar;
 
     // Samenvatting kaarten
     html += `<div class="rapport-saldo-card" style="background:linear-gradient(145deg,var(--card),#ECEAF8);border-color:rgba(80,64,160,0.2)">
@@ -3471,18 +3524,15 @@ function renderRapportContent(tab) {
     html += rapportRow('Lauren', c.laurenIn, 'income');
     html += `</div>`;
 
-    html += `<div class="rapport-section"><div class="rapport-section-title"><span>💙 Gem. rekening (bijdragen)</span><span style="color:#1A64C8">${fmt(totalBij)}</span></div>`;
-    html += rapportRow('David → gem.', c.bijDavid, 'transfer');
-    html += rapportRow('Lauren → gem.', c.bijLauren, 'transfer');
-    html += `</div>`;
-
     html += `<div class="rapport-section"><div class="rapport-section-title"><span>🔴 Persoonlijke uitgaven</span><span style="color:var(--danger)">${fmt(c.davidUit + c.laurenUit)}</span></div>`;
     html += rapportRow('David', c.davidUit, 'expense');
     html += rapportRow('Lauren', c.laurenUit, 'expense');
     html += `</div>`;
 
-    html += `<div class="rapport-section"><div class="rapport-section-title"><span>🏡 Gemeenschappelijke uitgaven</span><span style="color:var(--danger)">${fmt(c.gemUit)}</span></div>`;
-    html += rapportRow('Totaal gem. uitgaven', c.gemUit, 'expense');
+    html += `<div class="rapport-section"><div class="rapport-section-title"><span>🏡 Bijdrage gem. rekening</span><span style="color:#1A64C8">${fmt(totalBij)}</span></div>`;
+    html += rapportRow('David → gem.', c.bijDavid, 'transfer');
+    html += rapportRow('Lauren → gem.', c.bijLauren, 'transfer');
+    html += `<div class="rapport-row" style="background:var(--bg);font-size:12px;color:var(--muted);padding:8px 18px;font-style:italic">Gem. uitgaven (${fmt(c.gemUit)}) worden gedekt door de bijdragen.</div>`;
     html += `</div>`;
 
     html += `<div class="rapport-section"><div class="rapport-section-title"><span>💎 Sparen</span><span style="color:var(--spaar)">${fmt(totalSpaar)}</span></div>`;
@@ -3500,7 +3550,7 @@ function renderRapportContent(tab) {
     // Donut totaal
     const segments = [
       { val: c.davidUit + c.laurenUit, color: 'var(--danger)', label: 'Persoonlijke uitg.' },
-      { val: c.gemUit,                  color: '#E07030',       label: 'Gem. uitgaven' },
+      { val: totalBij,                  color: '#1A64C8',       label: 'Gem. rekening' },
       { val: totalSpaar,                color: 'var(--spaar)',  label: 'Sparen' },
       { val: Math.max(0, totalSaldo),   color: 'var(--income)', label: 'Vrij' },
     ].filter(s => s.val > 0);
@@ -4332,11 +4382,22 @@ let _grafiekRek = null;
 
 function openGrafiekOverlay(rek) {
   _grafiekRek = rek;
-  const namen = { man: '💙 David', vrouw: '🌺 Lauren', null: '🏠 Gezin' };
+  const namen = { man: '💙 David', vrouw: '🌺 Lauren', gemeenschappelijk: '🏡 Gemeenschappelijk', null: '🏠 Gezin' };
   const rekKey = rek === null ? 'null' : rek;
   document.getElementById('grafiek-overlay-title').textContent = namen[rekKey] || rek;
   document.getElementById('grafiek-overlay-month').textContent = `${currentYear}`;
   document.getElementById('grafiek-full-title').textContent = `Maandverloop ${currentYear}`;
+
+  // Legende aanpassen: bijdrage-balk tonen voor man/vrouw
+  const legendEl = document.querySelector('#grafiek-overlay .chart-legend');
+  if (legendEl) {
+    const showBij = rek === 'man' || rek === 'vrouw';
+    legendEl.innerHTML = `
+      <span><span class="leg-dot" style="background:var(--income-light);border:1px solid var(--income)"></span>Inkomsten</span>
+      <span><span class="leg-dot" style="background:var(--danger-light);border:1px solid var(--danger)"></span>Uitgaven</span>
+      ${showBij ? '<span><span class="leg-dot" style="background:#D8E8F8;border:1px solid #1A64C8"></span>Gem. rekening</span>' : ''}
+    `;
+  }
 
   const overlay = document.getElementById('grafiek-overlay');
   overlay.classList.add('open');
@@ -4349,15 +4410,17 @@ function openGrafiekOverlay(rek) {
   const detail = document.getElementById('grafiek-maand-detail');
   detail.innerHTML = allData.map(d => {
     const isCur = d.m === currentMonth;
-    const saldo = d.in - d.out;
+    const saldo = d.in - d.out - (d.bij || 0);
+    const totalUit = d.out + (d.bij || 0);
     return `<div style="background:var(--card);border:1px solid ${isCur ? 'var(--accent)' : 'var(--border)'};border-radius:var(--radius);padding:12px 16px;margin-bottom:10px;${isCur ? 'box-shadow:0 2px 12px rgba(192,64,122,0.15)' : ''}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span style="font-weight:600;font-size:15px;color:${isCur ? 'var(--accent)' : 'var(--text)'}">${MAANDEN[d.m]}${isCur ? ' ←' : ''}</span>
         <span style="font-family:'Playfair Display',serif;font-size:16px;color:${saldo >= 0 ? 'var(--income)' : 'var(--danger)'}">${saldo >= 0 ? '+' : ''}${fmt(saldo)}</span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px">
+      <div style="display:grid;grid-template-columns:${d.bij > 0 ? '1fr 1fr 1fr' : '1fr 1fr'};gap:6px;font-size:13px">
         <div style="color:var(--income)">↑ ${fmt(d.in)}</div>
         <div style="color:var(--danger)">↓ ${fmt(d.out)}</div>
+        ${d.bij > 0 ? `<div style="color:#1A64C8">🏡 ${fmt(d.bij)}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -4368,33 +4431,30 @@ function renderBarChartFull(containerId, allData, maxVal, maxH) {
   const container = document.getElementById(containerId);
   if (!container) return;
   // Filter: maanden zonder data tonen we als leeg (geen balken, wel label)
-  const hasData = d => d.in > 0 || d.out > 0;
-  const fmtShort = v => {
-    if (v <= 0) return '';
-    if (v >= 1000) return '€' + (v / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-    return '€' + Math.round(v);
-  };
+  const hasData = d => d.in > 0 || d.out > 0 || (d.bij || 0) > 0;
   container.innerHTML = allData.map(d => {
     const cur   = d.m === currentMonth;
-    const empty = !hasData(d);
+    const hasBij = (d.bij || 0) > 0;
+    const empty = !hasData(d) && !hasBij;
     const hIn   = (!empty && maxVal > 0) ? Math.max((d.in  / maxVal) * maxH, d.in  > 0 ? 6 : 0) : 0;
     const hOut  = (!empty && maxVal > 0) ? Math.max((d.out / maxVal) * maxH, d.out > 0 ? 6 : 0) : 0;
-    const inTxt  = fmtShort(d.in);
-    const outTxt = fmtShort(d.out);
+    const hBij  = (!empty && maxVal > 0 && hasBij) ? Math.max(((d.bij||0) / maxVal) * maxH, 6) : 0;
     const lblColor = cur ? 'var(--accent)' : 'var(--muted)';
-    const barW = 14; // bredere balken voor leesbaarheid
+    const barW = 11;
     return `
     <div class="bar-group ${cur?'current':''}" style="position:relative;flex:1">
-      <div style="display:flex;align-items:flex-end;justify-content:center;gap:3px;height:${maxH}px">
-        ${empty ? `<div style="height:${maxH}px;display:flex;align-items:flex-end;justify-content:center;width:${barW*2+3}px"><div style="width:2px;height:${maxH*0.15}px;background:var(--border);border-radius:1px;opacity:0.5"></div></div>` : `
+      <div style="display:flex;align-items:flex-end;justify-content:center;gap:2px;height:${maxH}px">
+        ${empty ? `<div style="height:${maxH}px;display:flex;align-items:flex-end;justify-content:center;width:${barW*3+6}px"><div style="width:2px;height:${maxH*0.15}px;background:var(--border);border-radius:1px;opacity:0.5"></div></div>` : `
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:0">
-          ${inTxt ? `<span style="font-size:8px;color:#1E7A3E;font-weight:700;line-height:1;white-space:nowrap;margin-bottom:3px;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg)">${inTxt}</span>` : ''}
           <div style="width:${barW}px;height:${hIn}px;background:linear-gradient(180deg,#2ECC71,#1E7A3E);border-radius:4px 4px 0 0;min-height:${d.in > 0 ? 6 : 0}px"></div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:0">
-          ${outTxt ? `<span style="font-size:8px;color:#C0202A;font-weight:700;line-height:1;white-space:nowrap;margin-bottom:3px;writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg)">${outTxt}</span>` : ''}
           <div style="width:${barW}px;height:${hOut}px;background:linear-gradient(180deg,#E05060,#C0202A);border-radius:4px 4px 0 0;min-height:${d.out > 0 ? 6 : 0}px"></div>
-        </div>`}
+        </div>
+        ${hBij > 0 ? `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:0">
+          <div style="width:${barW}px;height:${hBij}px;background:linear-gradient(180deg,#58A6FF,#1A64C8);border-radius:4px 4px 0 0;min-height:6px"></div>
+        </div>` : ''}`}
       </div>
       <div style="font-size:9px;color:${lblColor};text-align:center;margin-top:4px;font-weight:${cur?'700':'400'};width:100%">${d.lbl}</div>
     </div>`;
@@ -4558,7 +4618,10 @@ function renderJaarTab() {
     const isLocked = localStorage.getItem(lockKey) === '1';
 
     // Bereken totalen voor deze maand
+    // tUit = persoonlijke uitgaven + bijdragen (gem. uitgaven worden NIET apart opgeteld)
     let tIn = 0, tUit = 0;
+    const bijDavid  = parseBedrag(data.man?.bijdrage?.gem) || 0;
+    const bijLauren = parseBedrag(data.vrouw?.bijdrage?.gem) || 0;
     ['man','vrouw'].forEach(r => {
       SCHEMA[r].inkomsten.forEach(i => { tIn  += parseBedrag(data[r]?.inkomsten?.[i.key]) || 0; });
       SCHEMA[r].uitgaven.forEach(i => {
@@ -4576,31 +4639,8 @@ function renderJaarTab() {
           tUit += v;
         }
       });
-    });
-    SCHEMA.gemeenschappelijk.uitgaven.forEach(i => {
-      if (i.overige) {
-        try {
-          const ovKey = sessionKey('overige_gemeenschappelijk_uitgaven_budget_' + currentYear + '-' + String(m+1).padStart(2,'0'));
-          const ov = JSON.parse(localStorage.getItem(ovKey) || '[]');
-          ov.forEach(o => { tUit += parseBedrag(o.bedrag) || 0; });
-        } catch {}
-      } else if (i.abonnementen) {
-        getAbonnementenItems('gemeenschappelijk').forEach(ab => { tUit += parseBedrag(data.gemeenschappelijk?.abonnementen?.[ab.key]) || 0; });
-      } else {
-        let v = parseBedrag(data.gemeenschappelijk?.uitgaven?.[i.key]) || 0;
-        if (i.tag === 'kwartaal') v /= 3;
-        tUit += v;
-      }
-    });
-
-    // Sparen = override of automatisch (beschikbaar - bijdragen)
-    const bijDavid  = parseBedrag(data.man?.bijdrage?.gem) || 0;
-    const bijLauren = parseBedrag(data.vrouw?.bijdrage?.gem) || 0;
-    let tSpaar = 0;
-    ['man','vrouw'].forEach(r => {
-      const ov = data[r]?.sparen?.override;
-      const bescIn  = r === 'man'  ? tIn  : 0; // rough — use per-person if needed
-      const bijPers = r === 'man'  ? bijDavid : bijLauren;
+      // Bijdrage gem. rekening telt als uitgave
+      tUit += r === 'man' ? bijDavid : bijLauren;
     });
     // Simplified: use sparen override if set, else estimate
     const davidOv  = data.man?.sparen?.override;
@@ -4722,6 +4762,8 @@ function exportNaarCSV() {
     let data = {};
     try { data = JSON.parse(localStorage.getItem(mk) || '{}'); } catch {}
     let tIn = 0, tUit = 0, tSpaar = 0;
+    const bijDavid  = parseBedrag(data.man?.bijdrage?.gem) || 0;
+    const bijLauren = parseBedrag(data.vrouw?.bijdrage?.gem) || 0;
     ['man','vrouw'].forEach(r => {
       SCHEMA[r].inkomsten.forEach(i => { tIn  += parseBedrag(data[r]?.inkomsten?.[i.key]) || 0; });
       SCHEMA[r].uitgaven.forEach(i => {
@@ -4729,14 +4771,8 @@ function exportNaarCSV() {
         else if (i.abonnementen) { getAbonnementenItems(r).forEach(ab => { tUit += parseBedrag(data[r]?.abonnementen?.[ab.key]) || 0; }); }
         else { let v = parseBedrag(data[r]?.uitgaven?.[i.key]) || 0; if (i.tag==='kwartaal') v/=3; tUit += v; }
       });
+      tUit += r === 'man' ? bijDavid : bijLauren;
     });
-    SCHEMA.gemeenschappelijk.uitgaven.forEach(i => {
-      if (i.overige) { try { const ov = JSON.parse(localStorage.getItem(sessionKey('overige_gemeenschappelijk_uitgaven_budget_' + currentYear + '-' + String(m+1).padStart(2,'0'))) || '[]'); ov.forEach(o => { tUit += parseBedrag(o.bedrag) || 0; }); } catch {} }
-      else if (i.abonnementen) { getAbonnementenItems('gemeenschappelijk').forEach(ab => { tUit += parseBedrag(data.gemeenschappelijk?.abonnementen?.[ab.key]) || 0; }); }
-      else { let v = parseBedrag(data.gemeenschappelijk?.uitgaven?.[i.key]) || 0; if (i.tag==='kwartaal') v/=3; tUit += v; }
-    });
-    const bijDavid  = parseBedrag(data.man?.bijdrage?.gem) || 0;
-    const bijLauren = parseBedrag(data.vrouw?.bijdrage?.gem) || 0;
     const davidOv   = data.man?.sparen?.override;
     const laurenOv  = data.vrouw?.sparen?.override;
     let davidIn2 = 0, laurenIn2 = 0, davidUit2 = 0, laurenUit2 = 0;
@@ -5001,6 +5037,7 @@ document.getElementById('deel-overlay').addEventListener('click', function(e) {
       <div class="chart-legend" style="margin-top:10px">
         <span><span class="leg-dot" style="background:var(--income-light);border:1px solid var(--income)"></span>Inkomsten</span>
         <span><span class="leg-dot" style="background:var(--danger-light);border:1px solid var(--danger)"></span>Uitgaven</span>
+        <span><span class="leg-dot" style="background:#D8E8F8;border:1px solid #1A64C8"></span>Gem. rekening</span>
       </div>
     </div>
     <div id="grafiek-maand-detail"></div>
