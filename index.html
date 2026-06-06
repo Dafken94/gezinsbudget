@@ -2338,7 +2338,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
               <th>Inkomsten</th>
               <th>Uitgaven</th>
               <th>Gespaard</th>
-              <th>Saldo</th>
+              <th>Vrij saldo</th>
             </tr></thead>
             <tbody id="jaar-tbody"></tbody>
           </table>
@@ -3499,16 +3499,18 @@ function recalcAll() {
   setTot('total-gem-naar-vrouw',  c.transferGemVrouw);
 
   // === OVERZICHT ===
-  // davidUit/laurenUit bevatten al de transfers als uitgave.
-  // davidIn/laurenIn bevatten al de ontvangen transfers als inkomst.
-  // Op gezinsniveau annuleren interne transfers (man↔vrouw, gem→persoon) elkaar.
   // Gebruik ruwe inkomsten (zonder ontvangen transfers) om dubbeltelling te vermijden.
   const totalIn    = (c.davidIn - c.transferVrouwMan - c.transferGemMan)
                    + (c.laurenIn - c.transferManVrouw - c.transferGemVrouw)
                    + c.gemExtraIn;
-  const totalUit   = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren;
-  const totalSpaar = c.davidSpaar + c.laurenSpaar;
-  const totalVrij  = totalIn - totalUit - totalSpaar;
+  const totalUit   = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren - c.transferManVrouw - c.transferVrouwMan;
+  // Sparen op gezinsniveau: beschikbaar gezin = totalIn - totalUit
+  // Als één persoon een tekort heeft, compenseert dit het sparen van de ander
+  const gezinBeschikbaar = totalIn - totalUit;
+  // Totaal gespaard = som van individueel sparen, maar max = gezinBeschikbaar
+  const totalSpaarRaw = c.davidSpaar + c.laurenSpaar;
+  const totalSpaar = Math.max(0, Math.min(totalSpaarRaw, gezinBeschikbaar));
+  const totalVrij  = gezinBeschikbaar - totalSpaar;
 
   animateAmtEl('ov-inkomsten', totalIn);
   animateAmtEl('ov-uitgaven',  totalUit);
@@ -3519,9 +3521,9 @@ function recalcAll() {
   const spaarrate = totalIn > 0 ? Math.round((totalSpaar / totalIn) * 100) : 0;
   document.getElementById('ov-spaarrate').textContent = spaarrate + '%';
 
-  const pct = totalIn > 0 ? Math.min((totalUit / totalIn) * 100, 100) : 0;
+  const pct = totalIn > 0 ? (totalUit / totalIn) * 100 : 0;
   const bar = document.getElementById('budget-bar');
-  bar.style.width = Math.round(pct) + '%';
+  bar.style.width = Math.min(Math.round(pct), 100) + '%';
   bar.className = 'budget-bar-fill ' + (pct >= 100 ? 'over' : pct >= 85 ? 'warn' : 'ok');
   document.getElementById('bar-pct-label').textContent = Math.round(pct) + '%';
 
@@ -3547,9 +3549,10 @@ function renderOverzichtRekeningen(c) {
   const totalIn   = (c.davidIn - c.transferVrouwMan - c.transferGemMan)
                   + (c.laurenIn - c.transferManVrouw - c.transferGemVrouw)
                   + c.gemExtraIn;
-  const totalUit  = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren;
-  const totalSpaar= c.davidSpaar + c.laurenSpaar;
-  const totalSaldo= totalIn - totalUit - totalSpaar;
+  const totalUit  = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren - c.transferManVrouw - c.transferVrouwMan;
+  const gezinBesch = totalIn - totalUit;
+  const totalSpaar= Math.max(0, Math.min(c.davidSpaar + c.laurenSpaar, gezinBesch));
+  const totalSaldo= gezinBesch - totalSpaar;
   document.getElementById('overzicht-rekeningen').innerHTML = `
     <div class="rekening-card" style="border-color:rgba(91,111,191,0.35)">
       <div class="rekening-hdr" style="background:linear-gradient(135deg,#EDF0FC,#E8ECFA);border-bottom-color:rgba(91,111,191,0.2)">
@@ -3660,6 +3663,16 @@ function buildYearData(rek) {
       });
       // Bijdrage gem. rekening als aparte waarde
       tBij = parseBedrag(data[rek]?.bijdrage?.gem) || 0;
+      // Onderlinge overschrijvingen: verstuurde = uitgave, ontvangen = inkomst
+      if (rek === 'man') {
+        tUit += parseBedrag(data.transfers?.man_vrouw) || 0;
+        tIn  += parseBedrag(data.transfers?.vrouw_man) || 0;
+        tIn  += parseBedrag(data.transfers?.gem_man)   || 0;
+      } else {
+        tUit += parseBedrag(data.transfers?.vrouw_man) || 0;
+        tIn  += parseBedrag(data.transfers?.man_vrouw) || 0;
+        tIn  += parseBedrag(data.transfers?.gem_vrouw) || 0;
+      }
     }
 
     allData.push({ m, in: tIn, out: tUit, bij: tBij, lbl: MAANDEN[m].substring(0,3) });
@@ -3795,9 +3808,10 @@ function renderRapportContent(tab) {
                      + (c.laurenIn - c.transferManVrouw - c.transferGemVrouw)
                      + c.gemExtraIn;
     const totalBij   = c.bijDavid + c.bijLauren;
-    const totalUit   = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren;
-    const totalSpaar = c.davidSpaar + c.laurenSpaar;
-    const totalSaldo = totalIn - totalUit - totalSpaar;
+    const totalUit   = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren - c.transferManVrouw - c.transferVrouwMan;
+    const gezinBesch = totalIn - totalUit;
+    const totalSpaar = Math.max(0, Math.min(c.davidSpaar + c.laurenSpaar, gezinBesch));
+    const totalSaldo = gezinBesch - totalSpaar;
 
     // Samenvatting kaarten
     html += `<div class="rapport-saldo-card" style="background:linear-gradient(145deg,var(--card),#ECEAF8);border-color:rgba(80,64,160,0.2)">
@@ -4908,12 +4922,17 @@ function renderJaarTab() {
     const isLocked = localStorage.getItem(lockKey) === '1';
 
     // Bereken totalen voor deze maand
-    // tUit = persoonlijke uitgaven + bijdragen (gem. uitgaven worden NIET apart opgeteld)
-    let tIn = 0, tUit = 0;
+    // Op gezinsniveau annuleren man↔vrouw transfers elkaar (netto 0)
+    // gem→persoon transfers zijn een verschuiving van gem naar persoon (ook netto 0 voor gezin)
+    let tIn = 0, tUit = 0, tSpaar = 0;
     const bijDavid  = parseBedrag(data.man?.bijdrage?.gem) || 0;
     const bijLauren = parseBedrag(data.vrouw?.bijdrage?.gem) || 0;
+    // Extra inkomsten gemeenschappelijk
+    SCHEMA.gemeenschappelijk.inkomsten.forEach(i => {
+      tIn += parseBedrag(data.gemeenschappelijk?.inkomsten?.[i.key]) || 0;
+    });
     ['man','vrouw'].forEach(r => {
-      SCHEMA[r].inkomsten.forEach(i => { tIn  += parseBedrag(data[r]?.inkomsten?.[i.key]) || 0; });
+      SCHEMA[r].inkomsten.forEach(i => { tIn += parseBedrag(data[r]?.inkomsten?.[i.key]) || 0; });
       SCHEMA[r].uitgaven.forEach(i => {
         if (i.overige) {
           try {
@@ -4932,20 +4951,50 @@ function renderJaarTab() {
       // Bijdrage gem. rekening telt als uitgave
       tUit += r === 'man' ? bijDavid : bijLauren;
     });
-    // Simplified: use sparen override if set, else estimate
+    // Sparen: gebruik dezelfde logica als calcCore (per persoon, inclusief transfers)
+    const transferManVrouw = parseBedrag(data.transfers?.man_vrouw) || 0;
+    const transferVrouwMan = parseBedrag(data.transfers?.vrouw_man) || 0;
+    const transferGemMan   = parseBedrag(data.transfers?.gem_man)   || 0;
+    const transferGemVrouw = parseBedrag(data.transfers?.gem_vrouw) || 0;
+
     const davidOv  = data.man?.sparen?.override;
     const laurenOv = data.vrouw?.sparen?.override;
     let davidIn = 0, laurenIn = 0, davidUit2 = 0, laurenUit2 = 0;
     SCHEMA.man.inkomsten.forEach(i => { davidIn += parseBedrag(data.man?.inkomsten?.[i.key]) || 0; });
     SCHEMA.vrouw.inkomsten.forEach(i => { laurenIn += parseBedrag(data.vrouw?.inkomsten?.[i.key]) || 0; });
+    // Ontvangen transfers tellen als inkomsten
+    davidIn  += transferVrouwMan + transferGemMan;
+    laurenIn += transferManVrouw + transferGemVrouw;
     SCHEMA.man.uitgaven.forEach(i => {
-      if (!i.overige && !i.abonnementen) davidUit2 += parseBedrag(data.man?.uitgaven?.[i.key]) || 0;
-      else if (i.abonnementen) getAbonnementenItems('man').forEach(ab => { davidUit2 += parseBedrag(data.man?.abonnementen?.[ab.key]) || 0; });
+      if (i.overige) {
+        try {
+          const ovKey = sessionKey('overige_man_uitgaven_budget_' + currentYear + '-' + String(m+1).padStart(2,'0'));
+          const ov = JSON.parse(localStorage.getItem(ovKey) || '[]');
+          ov.forEach(o => { davidUit2 += parseBedrag(o.bedrag) || 0; });
+        } catch {}
+      } else if (i.abonnementen) {
+        getAbonnementenItems('man').forEach(ab => { davidUit2 += parseBedrag(data.man?.abonnementen?.[ab.key]) || 0; });
+      } else {
+        davidUit2 += parseBedrag(data.man?.uitgaven?.[i.key]) || 0;
+      }
     });
+    // Transfer David→Lauren telt als uitgave voor David
+    davidUit2 += transferManVrouw;
     SCHEMA.vrouw.uitgaven.forEach(i => {
-      if (!i.overige && !i.abonnementen) laurenUit2 += parseBedrag(data.vrouw?.uitgaven?.[i.key]) || 0;
-      else if (i.abonnementen) getAbonnementenItems('vrouw').forEach(ab => { laurenUit2 += parseBedrag(data.vrouw?.abonnementen?.[ab.key]) || 0; });
+      if (i.overige) {
+        try {
+          const ovKey = sessionKey('overige_vrouw_uitgaven_budget_' + currentYear + '-' + String(m+1).padStart(2,'0'));
+          const ov = JSON.parse(localStorage.getItem(ovKey) || '[]');
+          ov.forEach(o => { laurenUit2 += parseBedrag(o.bedrag) || 0; });
+        } catch {}
+      } else if (i.abonnementen) {
+        getAbonnementenItems('vrouw').forEach(ab => { laurenUit2 += parseBedrag(data.vrouw?.abonnementen?.[ab.key]) || 0; });
+      } else {
+        laurenUit2 += parseBedrag(data.vrouw?.uitgaven?.[i.key]) || 0;
+      }
     });
+    // Transfer Lauren→David telt als uitgave voor Lauren
+    laurenUit2 += transferVrouwMan;
     const davidBesch  = davidIn  - bijDavid  - davidUit2;
     const laurenBesch = laurenIn - bijLauren - laurenUit2;
     const davidSpaar  = (davidOv  !== undefined && davidOv  !== null && davidOv  !== '') ? parseBedrag(davidOv)  : Math.max(0, davidBesch);
