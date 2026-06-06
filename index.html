@@ -14,6 +14,15 @@
 <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
 <title>Gezinsbudget</title>
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getDatabase, ref, onValue, set, remove, get } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+  window.firebaseApp = { initializeApp };
+  window.firebaseDatabase = { getDatabase, ref, onValue, set, remove, get };
+  // Stuur event zodat de app weet dat Firebase beschikbaar is
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -79,7 +88,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 
 /* HEADER */
 .app-header {
-  background: linear-gradient(135deg, #FFF0F7 0%, #F8E8F8 100%);
+  background: linear-gradient(135deg, #F5F5F5 0%, #EBEBEB 100%);
   border-bottom: 1px solid var(--border);
   padding: 10px 12px 10px;
   display: flex;
@@ -97,7 +106,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  background: linear-gradient(135deg, #C0407A, #9B59B6);
+  background: linear-gradient(135deg, #1A7A40, #0E9A5A);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1935,13 +1944,13 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
     <button onclick="toggleLockMaand()" class="unlock-exempt">Ontgrendelen</button>
   </div>
   <div class="sync-banner" id="sync-banner">
-    <span>🔗</span>
-    <span>Gedeelde sessie actief — wijzigingen worden gedeeld via de link</span>
+    <span>🔥</span>
+    <span>Verbonden — wijzigingen worden real-time gedeeld</span>
     <button onclick="openDeel()" style="margin-left:auto;background:none;border:1px solid rgba(26,58,92,0.3);color:var(--transfer);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Beheer</button>
   </div>
 
   <div class="app-header">
-    <h1>🌷 Gezinsbudget</h1>
+    <h1>💰 Gezinsbudget</h1>
     <button onclick="openDeel()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:0 8px;height:32px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent;flex-shrink:0" aria-label="Delen">🔗</button>
     <button class="darkmode-btn" onclick="toggleDarkMode()" id="darkmode-btn" style="height:32px;padding:0 8px;font-size:15px;" aria-label="Dark mode">🌙</button>
     <button class="lock-btn" id="lock-btn" onclick="toggleLockMaand()" aria-label="Maand vergrendelen" title="Maand vergrendelen/ontgrendelen">🔓</button>
@@ -2022,11 +2031,6 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
           📉 Uitgaven van hoog naar laag
         </button>
 
-        <!-- Reset maand knop -->
-        <button class="rapport-btn" onclick="openResetMaand()" style="background:linear-gradient(135deg,#555,#333) !important;margin-top:-8px">
-          🗑 Reset huidige maand
-        </button>
-
         <!-- Gezinsoverzicht grafiek — klikbaar -->
         <button class="grafiek-open-btn" onclick="openGrafiekOverlay(null)" style="width:100%;border-color:var(--border);background:var(--card);margin-bottom:16px">
           <div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:8px">
@@ -2058,6 +2062,14 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
         <div id="bar-chart-vrouw" style="display:none"></div>
 
         <div id="overzicht-rekeningen"></div>
+
+        <!-- Reset knoppen — helemaal onderaan -->
+        <button class="rapport-btn" onclick="openResetMaand()" style="background:linear-gradient(135deg,#555,#333) !important;margin-top:8px">
+          🗑 Reset huidige maand
+        </button>
+        <button class="rapport-btn" onclick="openResetAlles()" style="background:linear-gradient(135deg,#8B0000,#600000) !important;margin-top:-8px">
+          ⚠️ Reset volledige app
+        </button>
 
       </div>
     </div>
@@ -2201,6 +2213,8 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
             <tbody id="jaar-tbody"></tbody>
           </table>
         </div>
+        <!-- Notities sectie -->
+        <div id="jaar-notities" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px"></div>
       </div>
     </div>
 
@@ -2380,22 +2394,117 @@ function toggleAbonnementen(rek) {
   renderAll(); recalcAll();
 }
 
-// ===== STORAGE =====
+// ===== FIREBASE STORAGE =====
+// In-memory cache — Firebase is the source of truth
+const _fbCache = {};
+let _fbReady = false;
+let _fbDb = null;
+let _fbListeners = {}; // key -> unsubscribe fn
+const _realLocalStorage = window.localStorage; // Bewaar echte localStorage vóór onze override
+
 function getKey() { return `budget_${currentYear}-${String(currentMonth+1).padStart(2,'0')}`; }
-function sessionKey(k) {
-  if (!window.SESSION_ID) return k;
-  if (k.startsWith('budget_') || k.startsWith('overige_') || k === 'budget_spaardoelen') {
-    return `shared_${window.SESSION_ID}_${k}`;
-  }
-  return k;
+function sessionKey(k) { return k; } // Firebase heeft geen sessie-prefix nodig
+
+function fbRef(path) {
+  return window._firebaseDatabase.ref(_fbDb, path);
 }
-function loadData() { try { return JSON.parse(localStorage.getItem(sessionKey(getKey())) || '{}'); } catch { return {}; } }
-function saveData(d) {
-  localStorage.setItem(sessionKey(getKey()), JSON.stringify(d));
-  if (window._syncChannel) {
-    const store = {}; store[sessionKey(getKey())] = JSON.stringify(d);
-    window._syncChannel.postMessage({ type: 'update', store });
+
+// Initialiseer Firebase en stel realtime listeners in
+function initFirebase() {
+  function start() {
+    const { initializeApp } = window.firebaseApp;
+    const { getDatabase, ref, onValue, set, remove, get } = window.firebaseDatabase;
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEmen0lBXT80Rk75pMlcjJagY3L3biOPg",
+      authDomain: "gezinsbudget-ecef1.firebaseapp.com",
+      databaseURL: "https://gezinsbudget-ecef1-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "gezinsbudget-ecef1",
+      storageBucket: "gezinsbudget-ecef1.firebasestorage.app",
+      messagingSenderId: "909005382845",
+      appId: "1:909005382845:web:3e50c21c972d5c1f3c43d4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    _fbDb = getDatabase(app);
+    window._firebaseDatabase = { ref, onValue, set, remove, get, db: _fbDb };
+    _fbReady = true;
+
+    // Realtime listener op root — elke update van iemand anders triggert re-render
+    onValue(ref(_fbDb, 'data'), (snapshot) => {
+      const val = snapshot.val() || {};
+      // Update cache volledig
+      Object.keys(_fbCache).forEach(k => delete _fbCache[k]);
+      Object.assign(_fbCache, val);
+      renderAll();
+      recalcAll();
+      renderMaandNotitie();
+      updateLockUI();
+    });
+
+    // Verbindingsstatus in sync-banner
+    onValue(ref(_fbDb, '.info/connected'), (snap) => {
+      const connected = snap.val();
+      const banner = document.getElementById('sync-banner');
+      if (banner) {
+        banner.classList.toggle('show', true);
+        const spans = banner.querySelectorAll('span');
+        if (spans[1]) spans[1].textContent = connected
+          ? 'Verbonden — wijzigingen worden real-time gedeeld'
+          : '⏳ Verbinding verbroken, opnieuw verbinden...';
+      }
+    });
   }
+
+  // Firebase module is al geladen (type="module" in head), maar kan iets later beschikbaar zijn
+  if (window.firebaseApp && window.firebaseDatabase) {
+    start();
+  } else {
+    window.addEventListener('firebase-ready', start, { once: true });
+  }
+}
+
+function fbKey(k) {
+  // Firebase keys mogen geen . / # $ [ ] bevatten — vervang door _
+  return k.replace(/[./#$[\]]/g, '_');
+}
+
+function fbGet(k) {
+  return _fbCache[fbKey(k)];
+}
+
+function fbSet(k, val) {
+  _fbCache[fbKey(k)] = val;
+  if (_fbReady && window._firebaseDatabase) {
+    const { ref, set, db } = window._firebaseDatabase;
+    set(ref(db, 'data/' + fbKey(k)), val);
+  }
+}
+
+function fbRemove(k) {
+  delete _fbCache[fbKey(k)];
+  if (_fbReady && window._firebaseDatabase) {
+    const { ref, remove, db } = window._firebaseDatabase;
+    remove(ref(db, 'data/' + fbKey(k)));
+  }
+}
+
+// Compatibiliteitslaag: localStorage-achtige API via Firebase
+const _ls = {
+  getItem(k)    { const v = fbGet(k); return v !== undefined ? v : null; },
+  setItem(k, v) { fbSet(k, v); },
+  removeItem(k) { fbRemove(k); },
+  get length()  { return Object.keys(_fbCache).length; },
+  key(i)        { return Object.keys(_fbCache)[i] || null; }
+};
+// Patch localStorage-aanroepen
+const localStorage = _ls;
+
+function loadData() {
+  try { return JSON.parse(_ls.getItem(getKey()) || '{}'); } catch { return {}; }
+}
+function saveData(d) {
+  _ls.setItem(getKey(), JSON.stringify(d));
 }
 
 // getPrevMonthKey: returns key of the previous month
@@ -2405,18 +2514,12 @@ function getPrevKey() {
   return `budget_${y}-${String(m+1).padStart(2,'0')}`;
 }
 
-// getValue: for persist items, falls back to previous month if current month has no value
+// getValue: direct lookup only — no automatic persist fallback
+// Use the "Kopieer vaste kosten" button to copy from previous month
 function getValue(rek, type, fk, persist) {
   const d = loadData();
   const v = d[rek]?.[type]?.[fk];
   if (v !== undefined && v !== '') return v;
-  if (persist) {
-    try {
-      const prev = JSON.parse(localStorage.getItem(sessionKey(getPrevKey())) || '{}');
-      const pv = prev[rek]?.[type]?.[fk];
-      if (pv !== undefined && pv !== '') return pv;
-    } catch {}
-  }
   return '';
 }
 
@@ -2428,28 +2531,6 @@ function setValue(rek, type, fk, val) {
   d[rek][type][fk] = val;
   saveData(d);
   recalcAll();
-
-  // Auto-persist: schrijf naar de volgende 12 maanden als ze nog leeg zijn
-  if (val === '' || val === null) return;
-  const schema = SCHEMA[rek]?.[type];
-  if (!schema) return;
-  const item = schema.find(i => i.key === fk);
-  const shouldPersist = item && (item.persist || item.tag === 'vast' || type === 'inkomsten');
-  if (!shouldPersist) return;
-  for (let offset = 1; offset <= 12; offset++) {
-    let m = currentMonth + offset, y = currentYear;
-    while (m > 11) { m -= 12; y++; }
-    const futureKey = sessionKey(`budget_${y}-${String(m+1).padStart(2,'0')}`);
-    let futureData = {};
-    try { futureData = JSON.parse(localStorage.getItem(futureKey) || '{}'); } catch {}
-    const existing = futureData[rek]?.[type]?.[fk];
-    if (existing === undefined || existing === '') {
-      if (!futureData[rek]) futureData[rek] = {};
-      if (!futureData[rek][type]) futureData[rek][type] = {};
-      futureData[rek][type][fk] = val;
-      localStorage.setItem(futureKey, JSON.stringify(futureData));
-    }
-  }
 }
 
 // Abonnement sub-values (stored under {rek}.abonnementen.{key})
@@ -2460,23 +2541,6 @@ function getAbonnement(key, persist, rek) {
 function setAbonnement(key, val, rek) {
   rek = rek || 'gemeenschappelijk';
   setValue(rek, 'abonnementen', key, val);
-  // Auto-persist abonnement (setValue already handles vast/inkomsten,
-  // but abonnementen type is not in SCHEMA so we do it here)
-  if (val === '' || val === null) return;
-  for (let offset = 1; offset <= 12; offset++) {
-    let m = currentMonth + offset, y = currentYear;
-    while (m > 11) { m -= 12; y++; }
-    const futureKey = sessionKey(`budget_${y}-${String(m+1).padStart(2,'0')}`);
-    let futureData = {};
-    try { futureData = JSON.parse(localStorage.getItem(futureKey) || '{}'); } catch {}
-    const existing = futureData[rek]?.abonnementen?.[key];
-    if (existing === undefined || existing === '') {
-      if (!futureData[rek]) futureData[rek] = {};
-      if (!futureData[rek].abonnementen) futureData[rek].abonnementen = {};
-      futureData[rek].abonnementen[key] = val;
-      localStorage.setItem(futureKey, JSON.stringify(futureData));
-    }
-  }
 }
 function calcAbonnementenTotal(rek) {
   rek = rek || 'gemeenschappelijk';
@@ -2572,20 +2636,19 @@ function setItemVastVar(rek, type, key, val) {
   d[rek + '_' + type + '_' + key] = val;
   saveVastVar(d);
 
-  // Propageer naar alle toekomstige maanden (volgende 24 maanden)
-  // zodat de vast/variabel keuze onthouden blijft
-  for (let offset = 1; offset <= 24; offset++) {
+  // Propageer naar ALLE andere maanden (verleden 24 + toekomst 24)
+  // zodat vast/variabel consistent is over alle maanden
+  for (let offset = -24; offset <= 24; offset++) {
+    if (offset === 0) continue; // huidige maand al gedaan
     let m = currentMonth + offset, y = currentYear;
+    while (m < 0)  { m += 12; y--; }
     while (m > 11) { m -= 12; y++; }
-    const futureVVKey = sessionKey('vastvar_' + y + '-' + String(m+1).padStart(2,'0'));
-    let futureVV = {};
-    try { futureVV = JSON.parse(localStorage.getItem(futureVVKey) || '{}'); } catch {}
-    // Alleen overschrijven als er nog geen expliciete keuze is voor die maand
+    const otherVVKey = sessionKey('vastvar_' + y + '-' + String(m+1).padStart(2,'0'));
+    let otherVV = {};
+    try { otherVV = JSON.parse(localStorage.getItem(otherVVKey) || '{}'); } catch {}
     const mapKey = rek + '_' + type + '_' + key;
-    if (!futureVV[mapKey]) {
-      futureVV[mapKey] = val;
-      localStorage.setItem(futureVVKey, JSON.stringify(futureVV));
-    }
+    otherVV[mapKey] = val; // Altijd overschrijven voor consistentie
+    localStorage.setItem(otherVVKey, JSON.stringify(otherVV));
   }
 
   renderAll();
@@ -2863,22 +2926,6 @@ function setBijdrage(rek, val) {
   d[rek].bijdrage.gem = val;
   saveData(d);
   recalcAll();
-  // Auto-persist bijdrage naar toekomstige maanden
-  if (val === '' || val === null) return;
-  for (let offset = 1; offset <= 12; offset++) {
-    let m = currentMonth + offset, y = currentYear;
-    while (m > 11) { m -= 12; y++; }
-    const futureKey = sessionKey(`budget_${y}-${String(m+1).padStart(2,'0')}`);
-    let futureData = {};
-    try { futureData = JSON.parse(localStorage.getItem(futureKey) || '{}'); } catch {}
-    const existing = futureData[rek]?.bijdrage?.gem;
-    if (existing === undefined || existing === '') {
-      if (!futureData[rek]) futureData[rek] = {};
-      if (!futureData[rek].bijdrage) futureData[rek].bijdrage = {};
-      futureData[rek].bijdrage.gem = val;
-      localStorage.setItem(futureKey, JSON.stringify(futureData));
-    }
-  }
 }
 
 function getBijdrage(rek) {
@@ -3805,78 +3852,21 @@ function rapportGrafiekGem(gemIn, gemUit, gemSaldo) {
   </div>`;
 }
 
-// ===== DEEL / SYNC LOGICA =====
-// Strategie: sessionId in URL-hash (#sid=xxxx). Alle browsers met dezelfde hash
-// lezen/schrijven naar localStorage-keys geprefixed met die sid.
-// Bij elke setValue/saveData schrijven we ook naar een BroadcastChannel en
-// polling (voor cross-device: data wordt gecodeerd in een shareable URL-snapshot).
+// ===== DEEL / SYNC LOGICA (Firebase) =====
+// Data wordt automatisch gedeeld via Firebase — geen sessie-URL nodig.
+// Iedereen met de app-link ziet dezelfde data in real-time.
 
-let SESSION_ID = null;
+let SESSION_ID = null; // Niet meer gebruikt, maar behouden voor compatibiliteit
 
 function initSession() {
-  // Lees sid uit hash
-  const hash = window.location.hash;
-  const m = hash.match(/[#&]?sid=([a-zA-Z0-9_-]+)/);
-  if (m) {
-    SESSION_ID = m[1]; window.SESSION_ID = m[1];
-    document.getElementById('sync-banner').classList.add('show');
-  } else {
-    SESSION_ID = null; window.SESSION_ID = null;
-  }
-  // Cross-tab sync via BroadcastChannel
-  if (typeof BroadcastChannel !== 'undefined') {
-    window._syncChannel = new BroadcastChannel('budget_sync_' + (SESSION_ID || 'local'));
-    window._syncChannel.onmessage = (e) => {
-      if (e.data?.type === 'update') {
-        // Sla de ontvangen data op
-        Object.entries(e.data.store).forEach(([k, v]) => {
-          if (SESSION_ID) {
-            localStorage.setItem(k.replace('__LOCAL__', SESSION_ID), v);
-          } else {
-            localStorage.setItem(k, v);
-          }
-        });
-        renderAll(); recalcAll();
-      }
-    };
-  }
-}
-
-function getStoragePrefix() {
-  return SESSION_ID ? `shared_${SESSION_ID}_` : '';
-}
-
-// Override getKey om sessie-prefix te gebruiken
-const _origGetKey = getKey;
-// Patch: wrap localStorage zodat het de sessie-prefix gebruikt
-const _lsGet = localStorage.getItem.bind(localStorage);
-const _lsSet = localStorage.setItem.bind(localStorage);
-
-function generateSessionId() {
-  return Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
-}
-
-function buildDeelURL(sid) {
-  const base = window.location.href.split('#')[0];
-  return base + '#sid=' + sid;
+  // Niets te doen — Firebase initFirebase() regelt alles
 }
 
 function openDeel() {
-  let sid = SESSION_ID;
-  if (!sid) {
-    sid = generateSessionId();
-  }
-  const url = buildDeelURL(sid);
+  const url = window.location.href.split('#')[0];
   document.getElementById('deel-url-box').textContent = url;
-  const badgeWrap = document.getElementById('deel-badge-wrap');
-  if (SESSION_ID) {
-    badgeWrap.innerHTML = '<div class="deel-badge">✅ Gedeelde sessie actief</div>';
-  } else {
-    badgeWrap.innerHTML = '<div class="deel-badge" style="background:var(--warning-light);color:var(--warning);border-color:rgba(122,74,0,0.2)">⚠️ Nog niet gedeeld — kopieer de link om te starten</div>';
-  }
+  document.getElementById('deel-badge-wrap').innerHTML = '<div class="deel-badge">✅ Firebase — real-time gedeeld</div>';
   document.getElementById('deel-overlay').classList.add('show');
-  // Sla sid op in URL zodat huidige gebruiker ook de sessie-prefix krijgt na reload
-  window._pendingSid = sid;
 }
 
 function closeDeel() {
@@ -3884,54 +3874,25 @@ function closeDeel() {
 }
 
 function kopieerDeelLink() {
-  activeerSessieEnKopieer();
+  const url = window.location.href.split('#')[0];
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.querySelector('.deel-copy-btn');
+    btn.textContent = '✅ Gekopieerd!';
+    setTimeout(() => btn.textContent = '📋 Kopieer link', 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = document.querySelector('.deel-copy-btn');
+    btn.textContent = '✅ Gekopieerd!';
+    setTimeout(() => btn.textContent = '📋 Kopieer link', 2000);
+  });
 }
 
 function deelViaSMS() {
-  activeerSessieEnKopieer(true);
-}
-
-function activeerSessieEnKopieer(viaSMS) {
-  if (!SESSION_ID && window._pendingSid) {
-    // Migreer huidige localStorage-data naar gedeelde sessie
-    const sid = window._pendingSid;
-    const prefix = `shared_${sid}_`;
-    // Kopieer alle bestaande budget-data
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && (k.startsWith('budget_') || k.startsWith('overige_'))) {
-        localStorage.setItem(prefix + k, localStorage.getItem(k));
-      }
-    }
-    // Navigeer naar de gedeelde URL (laadt de sessie)
-    const url = buildDeelURL(sid);
-    window.location.hash = '#sid=' + sid;
-    SESSION_ID = sid; window.SESSION_ID = sid;
-    document.getElementById('sync-banner').classList.add('show');
-    initSession();
-    // Update de URL box
-    document.getElementById('deel-url-box').textContent = url;
-    document.getElementById('deel-badge-wrap').innerHTML = '<div class="deel-badge">✅ Gedeelde sessie actief</div>';
-  }
-  const url = document.getElementById('deel-url-box').textContent;
-  if (viaSMS) {
-    window.open('sms:?body=' + encodeURIComponent('Gezinsbudget link: ' + url), '_blank');
-  } else {
-    navigator.clipboard.writeText(url).then(() => {
-      const btn = document.querySelector('.deel-copy-btn');
-      btn.textContent = '✅ Gekopieerd!';
-      setTimeout(() => btn.textContent = '📋 Kopieer link', 2000);
-    }).catch(() => {
-      // Fallback
-      const ta = document.createElement('textarea');
-      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select(); document.execCommand('copy');
-      document.body.removeChild(ta);
-      const btn = document.querySelector('.deel-copy-btn');
-      btn.textContent = '✅ Gekopieerd!';
-      setTimeout(() => btn.textContent = '📋 Kopieer link', 2000);
-    });
-  }
+  const url = window.location.href.split('#')[0];
+  window.open('sms:?body=' + encodeURIComponent('Gezinsbudget link: ' + url), '_blank');
 }
 
 
@@ -4013,7 +3974,7 @@ function setupSwipe() {
 
 // ===== DARK MODE =====
 function initDarkMode() {
-  const saved = localStorage.getItem('budget_darkmode');
+  const saved = _realLocalStorage.getItem('budget_darkmode');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const isDark = saved !== null ? saved === '1' : prefersDark;
   applyDarkMode(isDark);
@@ -4022,7 +3983,7 @@ function applyDarkMode(dark) {
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
   const btn = document.getElementById('darkmode-btn');
   if (btn) btn.textContent = dark ? '☀️' : '🌙';
-  localStorage.setItem('budget_darkmode', dark ? '1' : '0');
+  _realLocalStorage.setItem('budget_darkmode', dark ? '1' : '0');
 }
 function toggleDarkMode() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -4117,7 +4078,13 @@ function openQuickInvoer() {
   document.getElementById('quick-backdrop').classList.add('open');
   document.getElementById('fab').classList.add('open');
   setupQuickSwipeClose();
-  renderQuickCatList();
+  // Spring automatisch naar de huidige actieve tab
+  const activeTab = TAB_ORDER[currentTabIdx];
+  if (activeTab === 'man' || activeTab === 'vrouw' || activeTab === 'gemeenschappelijk') {
+    switchQuickTab(activeTab);
+  } else {
+    renderQuickCatList();
+  }
 }
 function closeQuickInvoer() {
   _quickOpen = false;
@@ -4481,6 +4448,9 @@ function kiesMaand(maandIdx) {
 }
 
 updateMonthLabel();
+// Firebase initialiseert asynchroon — renderAll/recalcAll worden aangeroepen
+// vanuit de Firebase onValue listener zodra data beschikbaar is.
+// Eerste render met lege data zodat de UI direct zichtbaar is.
 renderAll();
 recalcAll();
 initSession();
@@ -4489,8 +4459,9 @@ setupSwipe();
 startSeizoensAnimatie();
 switchTab('overzicht', false);
 initSwipeDelete();
-// Init pill position after layout
 requestAnimationFrame(() => movePill(0));
+// Firebase starten (laadt data en stelt realtime listeners in)
+initFirebase();
 
 
 // ===== MAAND VERGRENDELEN =====
@@ -4673,6 +4644,29 @@ function renderJaarTab() {
   </tr>`;
 
   tbody.innerHTML = rows;
+
+  // Render notities sectie
+  const notitiesContainer = document.getElementById('jaar-notities');
+  if (notitiesContainer) {
+    let notitiesHtml = `<div style="padding:13px 18px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--muted)">📝 Maandelijkse notities ${currentYear}</div>`;
+    let heeftNotities = false;
+    for (let m = 0; m < 12; m++) {
+      const notitieKey = sessionKey('notitie_' + currentYear + '-' + String(m+1).padStart(2,'0'));
+      const notitie = localStorage.getItem(notitieKey) || '';
+      if (notitie.trim()) {
+        heeftNotities = true;
+        const isCur = m === currentMonth && currentYear === new Date().getFullYear();
+        notitiesHtml += `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 18px;border-bottom:1px solid var(--border);${isCur ? 'background:var(--accent-light)' : ''}">
+          <span style="font-size:12px;font-weight:700;color:${isCur ? 'var(--accent)' : 'var(--muted)'};min-width:36px;padding-top:2px">${MAANDEN[m].substring(0,3)}</span>
+          <span style="font-size:14px;color:var(--text);line-height:1.5;flex:1">${notitie}</span>
+        </div>`;
+      }
+    }
+    if (!heeftNotities) {
+      notitiesHtml += `<div style="padding:20px 18px;font-size:14px;color:var(--muted);text-align:center">Geen notities voor ${currentYear}.</div>`;
+    }
+    notitiesContainer.innerHTML = notitiesHtml;
+  }
 }
 
 // ===== PERCENTAGE VAST vs VARIABEL in rapport =====
@@ -4772,8 +4766,9 @@ function closeResetMaand() {
 }
 function bevestigResetMaand() {
   const mk = getKey();
+  const mkFull = sessionKey(mk);
   // Wis budget data
-  localStorage.removeItem(sessionKey(mk));
+  localStorage.removeItem(mkFull);
   // Wis overige items voor alle rekeningen
   REKENINGEN.forEach(rek => {
     ['inkomsten','uitgaven'].forEach(type => {
@@ -4788,8 +4783,46 @@ function bevestigResetMaand() {
   localStorage.removeItem(sessionKey('lock_' + currentYear + '-' + String(currentMonth+1).padStart(2,'0')));
 
   closeResetMaand();
+  // Reset ook de lock UI
+  updateLockUI();
   renderAll();
   recalcAll();
+}
+
+// ===== RESET ALLES =====
+function openResetAlles() {
+  const overlay = document.getElementById('reset-alles-overlay');
+  if (overlay) overlay.style.display = 'flex';
+}
+function closeResetAlles() {
+  const overlay = document.getElementById('reset-alles-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+function bevestigResetAlles() {
+  // Wis alle data in Firebase
+  if (_fbReady && window._firebaseDatabase) {
+    const { ref, remove, db } = window._firebaseDatabase;
+    remove(ref(db, 'data'));
+  }
+  // Wis ook lokale cache
+  Object.keys(_fbCache).forEach(k => delete _fbCache[k]);
+
+  closeResetAlles();
+  updateLockUI();
+  renderAll();
+  recalcAll();
+
+  // Visuele bevestiging
+  const btn = document.querySelector('[onclick="openResetAlles()"]');
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = '✓ App gereset';
+    btn.style.background = 'var(--income)';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.style.background = '';
+    }, 3000);
+  }
 }
 
 // ===== UITGAVEN RANKING =====
@@ -4897,8 +4930,8 @@ function renderRankingContent() {
 <div class="deel-overlay" id="deel-overlay">
   <div class="deel-sheet">
     <div class="deel-handle"></div>
-    <div class="deel-title">🔗 App delen</div>
-    <div class="deel-sub">Deel deze link met David of Lauren. Wie de link opent, ziet dezelfde data — alle invoer wordt gedeeld via de URL.</div>
+    <div class="deel-title">🔥 App delen</div>
+    <div class="deel-sub">Deel deze link met Lauren. Data wordt automatisch real-time gesynchroniseerd via Firebase — geen extra stappen nodig.</div>
     <div id="deel-badge-wrap"></div>
     <div class="deel-url-box" id="deel-url-box">—</div>
     <div class="deel-btns">
@@ -4907,8 +4940,8 @@ function renderRankingContent() {
       <button class="deel-close-btn" onclick="closeDeel()">Sluiten</button>
     </div>
     <div class="deel-info">
-      De link bevat een unieke sessie-ID. Iedereen met de link kan data lezen én aanpassen.<br>
-      Data wordt opgeslagen in de browser — een nieuwe sessie begint leeg.
+      Data wordt opgeslagen in Firebase — alle apparaten zien dezelfde data in real-time.<br>
+      Iedereen met de link kan data lezen én aanpassen.
     </div>
   </div>
 </div>
@@ -5015,6 +5048,27 @@ document.getElementById('deel-overlay').addEventListener('click', function(e) {
 <script>
 document.getElementById('reset-modal-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeResetMaand();
+});
+</script>
+
+<!-- RESET ALLES MODAL -->
+<div class="modal-overlay" id="reset-alles-overlay" style="display:none;z-index:500">
+  <div class="modal-sheet" style="background:linear-gradient(160deg,#FFF7FA,#FFF0F7)">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:#8B0000">⚠️ Reset volledige app</div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.6">
+      Dit wist <strong style="color:var(--text)">alle maanden van alle jaren</strong> volledig — alle bedragen, overige items, notities en instellingen worden gewist.<br><br>
+      <span style="color:#8B0000;font-weight:600">Dit kan NIET ongedaan worden gemaakt.</span>
+    </p>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeResetAlles()">Annuleer</button>
+      <button class="btn-primary" onclick="bevestigResetAlles()" style="background:linear-gradient(135deg,#8B0000,#600000) !important">⚠️ Wis alles</button>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('reset-alles-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeResetAlles();
 });
 </script>
 </body>
