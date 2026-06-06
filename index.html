@@ -14,6 +14,8 @@
 <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
 <title>Gezinsbudget</title>
+<!-- SheetJS voor Excel export/import -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -2012,6 +2014,17 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
           🔁 Kopieer vaste kosten van vorige maand
         </button>
 
+        <!-- Excel export/import knoppen -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <button class="rapport-btn" onclick="exportMaandNaarExcel()" style="background:linear-gradient(135deg,#1A7A40,#2ECC71) !important;margin:0;font-size:14px">
+            📥 Export maand Excel
+          </button>
+          <button class="rapport-btn" onclick="document.getElementById('excel-import-input').click()" style="background:linear-gradient(135deg,#1A4A8A,#2E86C1) !important;margin:0;font-size:14px">
+            📤 Importeer Excel
+          </button>
+        </div>
+        <input type="file" id="excel-import-input" accept=".xlsx" style="display:none" onchange="importeerMaandVanExcel(this)">&zwj;
+
         <!-- Notitie -->
         <div class="maand-notitie-wrap">
           <div class="maand-notitie-lbl">📝 Notitie voor deze maand</div>
@@ -2117,10 +2130,41 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
               Overschrijving gem. rekening
               <span class="row-tag" style="background:#D8E8F8;color:#1A64C8">Vast</span>
             </span>
+            <button class="row-plus-btn" onclick="toggleTransferAdd('man-bijdrage-add')" style="color:#1A64C8;border-color:rgba(26,100,200,0.3)">＋</button>
             <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-man-bijdrage" style="color:#1A64C8;border-color:rgba(26,100,200,0.3)"
               placeholder="0" inputmode="decimal"
               onchange="setBijdrage('man', this.value)"
               oninput="setBijdrage('man', this.value)">
+          </div>
+          <div class="row-add-inline" id="man-bijdrage-add" style="background:#EEF4FC">
+            <span class="row-add-inline-lbl" style="color:#1A64C8">＋ voeg toe</span>
+            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="man-bijdrage-add-input">
+            <button class="row-add-cancel-btn" onclick="closeTransferAdd('man-bijdrage-add')">✕</button>
+            <button class="row-add-confirm-btn" style="background:#1A64C8" onclick="confirmTransferAdd('bijdrage','man',null,'man-bijdrage-add')">✓</button>
+          </div>
+        </div>
+        <!-- Overschrijving David → Lauren -->
+        <div class="bijdrage-section-card" style="background:linear-gradient(145deg,#FCE8F2,#FAE0EE);border-color:rgba(192,64,122,0.3)">
+          <div class="bijdrage-section-hdr" style="color:var(--vrouw);border-bottom-color:rgba(192,64,122,0.2)">
+            <span>💸 Overschrijving naar Lauren</span>
+            <span class="total" id="total-man-naar-vrouw" style="color:var(--vrouw)">€0</span>
+          </div>
+          <div class="budget-row" style="background:transparent">
+            <span class="row-label" style="color:var(--vrouw)">
+              David → Lauren
+              <span class="row-tag" style="background:var(--vrouw-light);color:var(--vrouw)">Uitgave / Inkomst Lauren</span>
+            </span>
+            <button class="row-plus-btn" onclick="toggleTransferAdd('man-vrouw-add')" style="color:var(--vrouw);border-color:rgba(192,64,122,0.3)">＋</button>
+            <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-man-naar-vrouw" style="color:var(--vrouw);border-color:rgba(192,64,122,0.3)"
+              placeholder="0"
+              onchange="setTransfer('man','vrouw',this.value)"
+              oninput="setTransfer('man','vrouw',this.value)">
+          </div>
+          <div class="row-add-inline" id="man-vrouw-add" style="background:var(--vrouw-light)">
+            <span class="row-add-inline-lbl" style="color:var(--vrouw)">＋ voeg toe</span>
+            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="man-vrouw-add-input">
+            <button class="row-add-cancel-btn" onclick="closeTransferAdd('man-vrouw-add')">✕</button>
+            <button class="row-add-confirm-btn" style="background:var(--vrouw)" onclick="confirmTransferAdd('transfer','man','vrouw','man-vrouw-add')">✓</button>
           </div>
         </div>
         <div id="man-uitgaven-card" class="section-card"></div>
@@ -2165,10 +2209,41 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
               Overschrijving gem. rekening
               <span class="row-tag" style="background:#D8E8F8;color:#1A64C8">Vast</span>
             </span>
+            <button class="row-plus-btn" onclick="toggleTransferAdd('vrouw-bijdrage-add')" style="color:#1A64C8;border-color:rgba(26,100,200,0.3)">＋</button>
             <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-vrouw-bijdrage" style="color:#1A64C8;border-color:rgba(26,100,200,0.3)"
               placeholder="0" inputmode="decimal"
               onchange="setBijdrage('vrouw', this.value)"
               oninput="setBijdrage('vrouw', this.value)">
+          </div>
+          <div class="row-add-inline" id="vrouw-bijdrage-add" style="background:#EEF4FC">
+            <span class="row-add-inline-lbl" style="color:#1A64C8">＋ voeg toe</span>
+            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="vrouw-bijdrage-add-input">
+            <button class="row-add-cancel-btn" onclick="closeTransferAdd('vrouw-bijdrage-add')">✕</button>
+            <button class="row-add-confirm-btn" style="background:#1A64C8" onclick="confirmTransferAdd('bijdrage','vrouw',null,'vrouw-bijdrage-add')">✓</button>
+          </div>
+        </div>
+        <!-- Overschrijving Lauren → David -->
+        <div class="bijdrage-section-card" style="background:linear-gradient(145deg,#EDF0FC,#E8ECFA);border-color:rgba(91,111,191,0.3)">
+          <div class="bijdrage-section-hdr" style="color:var(--man);border-bottom-color:rgba(91,111,191,0.2)">
+            <span>💸 Overschrijving naar David</span>
+            <span class="total" id="total-vrouw-naar-man" style="color:var(--man)">€0</span>
+          </div>
+          <div class="budget-row" style="background:transparent">
+            <span class="row-label" style="color:var(--man)">
+              Lauren → David
+              <span class="row-tag" style="background:var(--man-light);color:var(--man)">Uitgave / Inkomst David</span>
+            </span>
+            <button class="row-plus-btn" onclick="toggleTransferAdd('vrouw-man-add')" style="color:var(--man);border-color:rgba(91,111,191,0.3)">＋</button>
+            <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-vrouw-naar-man" style="color:var(--man);border-color:rgba(91,111,191,0.3)"
+              placeholder="0"
+              onchange="setTransfer('vrouw','man',this.value)"
+              oninput="setTransfer('vrouw','man',this.value)">
+          </div>
+          <div class="row-add-inline" id="vrouw-man-add" style="background:var(--man-light)">
+            <span class="row-add-inline-lbl" style="color:var(--man)">＋ voeg toe</span>
+            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="vrouw-man-add-input">
+            <button class="row-add-cancel-btn" onclick="closeTransferAdd('vrouw-man-add')">✕</button>
+            <button class="row-add-confirm-btn" style="background:var(--man)" onclick="confirmTransferAdd('transfer','vrouw','man','vrouw-man-add')">✓</button>
           </div>
         </div>
         <div id="vrouw-uitgaven-card" class="section-card"></div>
@@ -2197,7 +2272,56 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
         </div>
         <div id="alert-gem" class="alert"></div>
         <div id="gem-inkomsten-card" class="section-card"></div>
+        <!-- Extra inkomsten gemeenschappelijk -->
+        <div id="gem-extra-inkomsten-card" class="section-card"></div>
         <div id="gem-uitgaven-card" class="section-card"></div>
+        <!-- Overschrijvingen vanuit gem. rekening -->
+        <div class="bijdrage-section-card" style="background:linear-gradient(145deg,#EDF0FC,#E8ECFA);border-color:rgba(91,111,191,0.3)">
+          <div class="bijdrage-section-hdr" style="color:var(--man);border-bottom-color:rgba(91,111,191,0.2)">
+            <span>💸 Overschrijving naar David</span>
+            <span class="total" id="total-gem-naar-man" style="color:var(--man)">€0</span>
+          </div>
+          <div class="budget-row" style="background:transparent">
+            <span class="row-label" style="color:var(--man)">
+              Gem. → David
+              <span class="row-tag" style="background:var(--man-light);color:var(--man)">Uitgave gem. / Inkomst David</span>
+            </span>
+            <button class="row-plus-btn" onclick="toggleTransferAdd('gem-man-add')" style="color:var(--man);border-color:rgba(91,111,191,0.3)">＋</button>
+            <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-gem-naar-man" style="color:var(--man);border-color:rgba(91,111,191,0.3)"
+              placeholder="0"
+              onchange="setTransfer('gem','man',this.value)"
+              oninput="setTransfer('gem','man',this.value)">
+          </div>
+          <div class="row-add-inline" id="gem-man-add" style="background:var(--man-light)">
+            <span class="row-add-inline-lbl" style="color:var(--man)">＋ voeg toe</span>
+            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="gem-man-add-input">
+            <button class="row-add-cancel-btn" onclick="closeTransferAdd('gem-man-add')">✕</button>
+            <button class="row-add-confirm-btn" style="background:var(--man)" onclick="confirmTransferAdd('transfer','gem','man','gem-man-add')">✓</button>
+          </div>
+        </div>
+        <div class="bijdrage-section-card" style="background:linear-gradient(145deg,#FCE8F2,#FAE0EE);border-color:rgba(192,64,122,0.3)">
+          <div class="bijdrage-section-hdr" style="color:var(--vrouw);border-bottom-color:rgba(192,64,122,0.2)">
+            <span>💸 Overschrijving naar Lauren</span>
+            <span class="total" id="total-gem-naar-vrouw" style="color:var(--vrouw)">€0</span>
+          </div>
+          <div class="budget-row" style="background:transparent">
+            <span class="row-label" style="color:var(--vrouw)">
+              Gem. → Lauren
+              <span class="row-tag" style="background:var(--vrouw-light);color:var(--vrouw)">Uitgave gem. / Inkomst Lauren</span>
+            </span>
+            <button class="row-plus-btn" onclick="toggleTransferAdd('gem-vrouw-add')" style="color:var(--vrouw);border-color:rgba(192,64,122,0.3)">＋</button>
+            <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-gem-naar-vrouw" style="color:var(--vrouw);border-color:rgba(192,64,122,0.3)"
+              placeholder="0"
+              onchange="setTransfer('gem','vrouw',this.value)"
+              oninput="setTransfer('gem','vrouw',this.value)">
+          </div>
+          <div class="row-add-inline" id="gem-vrouw-add" style="background:var(--vrouw-light)">
+            <span class="row-add-inline-lbl" style="color:var(--vrouw)">＋ voeg toe</span>
+            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="gem-vrouw-add-input">
+            <button class="row-add-cancel-btn" onclick="closeTransferAdd('gem-vrouw-add')">✕</button>
+            <button class="row-add-confirm-btn" style="background:var(--vrouw)" onclick="confirmTransferAdd('transfer','gem','vrouw','gem-vrouw-add')">✓</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2323,10 +2447,11 @@ const SCHEMA = {
     uitgaven: [
       { key:'lening_auto',       label:'🚗 Lening auto',              tag:'vast', persist:true },
       { key:'pensioensparen',    label:'🏦 Pensioensparen',           tag:'vast', persist:true },
-      { key:'abonnementen',      label:'📱 Abonnementen',          tag:'vast', persist:true, abonnementen: true },
+      { key:'abonnementen',      label:'📱 Abonnementen',             tag:'vast', persist:true, abonnementen: true },
       { key:'kledij',            label:'👗 Kledij',                   tag:'var'  },
       { key:'tanken',            label:'⛽ Tanken',                   tag:'var'  },
-      { key:'overige',           label:'💬 Overige',               tag:'var',  overige: true },
+      { key:'eten',              label:'🍽️ Eten',                     tag:'var'  },
+      { key:'overige',           label:'💬 Overige',                  tag:'var',  overige: true },
     ]
   },
   vrouw: {
@@ -2341,15 +2466,18 @@ const SCHEMA = {
     uitgaven: [
       { key:'lening_appartement',label:'🏢 Lening appartement',       tag:'vast', persist:true },
       { key:'pensioensparen',    label:'🏦 Pensioensparen',           tag:'vast', persist:true },
-      { key:'abonnementen',      label:'📱 Abonnementen',          tag:'vast', persist:true, abonnementen: true },
+      { key:'abonnementen',      label:'📱 Abonnementen',             tag:'vast', persist:true, abonnementen: true },
       { key:'kledij',            label:'👗 Kledij',                   tag:'var'  },
       { key:'tanken',            label:'⛽ Tanken',                   tag:'var'  },
       { key:'bol',               label:'📦 Bol',                      tag:'var'  },
-      { key:'overige',           label:'💬 Overige',               tag:'var',  overige: true },
+      { key:'eten',              label:'🍽️ Eten',                     tag:'var'  },
+      { key:'overige',           label:'💬 Overige',                  tag:'var',  overige: true },
     ]
   },
   gemeenschappelijk: {
-    inkomsten: [],
+    inkomsten: [
+      { key:'extra',             label:'✨ Extra inkomsten',           tag:'var'  },
+    ],
     uitgaven: [
       { key:'lening_woning',     label:'🏡 Lening woning',            tag:'vast', persist:true },
       { key:'gas',               label:'🔥 Gas',                      tag:'vast', persist:true },
@@ -2366,6 +2494,7 @@ const SCHEMA = {
       { key:'lias_kledij',       label:'🛍️ Lias kledij',              tag:'var'  },
       { key:'lias_baby',         label:'🧸 Lias pampers/doekjes/zeep',tag:'var'  },
       { key:'bol',               label:'📦 Bol',                      tag:'var'  },
+      { key:'eten',              label:'🍽️ Eten',                     tag:'var'  },
       { key:'overige',           label:'💬 Overige',                  tag:'var',  overige: true },
     ]
   }
@@ -2387,6 +2516,7 @@ const ABONNEMENTEN_ITEMS = [
   { key:'microsoft', label:'💻 Microsoft',  tag:'vast', persist:true },
   { key:'basicfit',  label:'💪 Basic-Fit',  tag:'vast', persist:true },
   { key:'ps5',       label:'🎮 PS5',        tag:'vast', persist:true },
+  { key:'hln',       label:'📰 HLN',        tag:'vast', persist:true },
 ];
 
 // Alle rekeningen delen dezelfde volledige abonnementenlijst
@@ -2579,6 +2709,19 @@ function loadOverige(rek, type) {
 }
 function saveOverige(rek, type, list) {
   localStorage.setItem(sessionKey(`overige_${rek}_${type}_${getKey()}`), JSON.stringify(list));
+}
+// Schrijf direct naar Firebase zonder debounce (voor import)
+function fbSetDirect(k, val) {
+  _fbCache[fbKey(k)] = val;
+  if (_fbReady && window._firebaseDatabase) {
+    const { ref, set, db } = window._firebaseDatabase;
+    set(ref(db, 'data/' + fbKey(k)), val);
+  }
+}
+function saveOverigeDirect(rek, type, list) {
+  const k = sessionKey(`overige_${rek}_${type}_${getKey()}`);
+  _fbCache[fbKey(k)] = JSON.stringify(list);
+  fbSetDirect(k, JSON.stringify(list));
 }
 function addOverigeItem(rek, type) {
   const list = loadOverige(rek, type);
@@ -2916,11 +3059,11 @@ function renderSectionCard(containerId, rek, type) {
 }
 
 // Render gem inkomsten (readonly, auto-filled)
-function renderGemInkomstenCard(bijDavid, bijLauren) {
+function renderGemInkomstenCard(bijDavid, bijLauren, gemExtraIn) {
   const container = document.getElementById('gem-inkomsten-card');
   if (!container) return;
   container.classList.add('is-gem');
-  const total = bijDavid + bijLauren;
+  const total = bijDavid + bijLauren + (gemExtraIn || 0);
   container.innerHTML = `
     <div class="section-hdr">
       <span>Ontvangen bijdragen</span>
@@ -2942,6 +3085,77 @@ function renderGemInkomstenCard(bijDavid, bijLauren) {
     </div>`;
 }
 
+// ===== + KNOP BIJ OVERSCHRIJVINGEN =====
+function toggleTransferAdd(addId) {
+  const addRow = document.getElementById(addId);
+  if (!addRow) return;
+  const isOpen = addRow.classList.contains('open');
+  // Sluit alle andere open add-rijen
+  document.querySelectorAll('.row-add-inline.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) {
+    addRow.classList.add('open');
+    const inp = document.getElementById(addId + '-input');
+    if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 80); }
+  }
+}
+function closeTransferAdd(addId) {
+  const addRow = document.getElementById(addId);
+  if (addRow) addRow.classList.remove('open');
+}
+function confirmTransferAdd(type, van, naar, addId) {
+  const inp = document.getElementById(addId + '-input');
+  if (!inp) return;
+  const extra = parseBedrag(inp.value) || 0;
+  if (extra <= 0) { inp.focus(); return; }
+
+  if (type === 'bijdrage') {
+    // Voeg toe aan bijdrage gem. rekening
+    const cur = getBijdrage(van);
+    const nieuw = cur + extra;
+    const d = loadData();
+    if (!d[van]) d[van] = {};
+    if (!d[van].bijdrage) d[van].bijdrage = {};
+    d[van].bijdrage.gem = String(nieuw);
+    saveData(d);
+    // Update input veld
+    const inputEl = document.getElementById('input-' + van + '-bijdrage');
+    if (inputEl) inputEl.value = String(nieuw);
+  } else {
+    // Voeg toe aan transfer
+    const cur = getTransfer(van, naar);
+    const nieuw = cur + extra;
+    const d = loadData();
+    if (!d.transfers) d.transfers = {};
+    d.transfers[van + '_' + naar] = String(nieuw);
+    saveData(d);
+    // Update input veld
+    const inputMap = {
+      'man_vrouw': 'input-man-naar-vrouw',
+      'vrouw_man': 'input-vrouw-naar-man',
+      'gem_man':   'input-gem-naar-man',
+      'gem_vrouw': 'input-gem-naar-vrouw',
+    };
+    const inputEl = document.getElementById(inputMap[van + '_' + naar]);
+    if (inputEl) inputEl.value = String(nieuw);
+  }
+
+  closeTransferAdd(addId);
+  recalcAll();
+
+  // Flash bevestiging
+  inp.value = '';
+  const btn = document.querySelector(`#${addId} .row-add-confirm-btn`);
+  if (btn) {
+    const origText = btn.textContent;
+    btn.textContent = '✓';
+    btn.style.background = 'var(--income)';
+    setTimeout(() => {
+      btn.textContent = origText;
+      btn.style.background = '';
+    }, 1000);
+  }
+}
+
 // ===== BIJDRAGE OPSLAAN =====
 function setBijdrage(rek, val) {
   const d = loadData();
@@ -2954,6 +3168,34 @@ function setBijdrage(rek, val) {
 
 function getBijdrage(rek) {
   return parseBedrag(loadData()[rek]?.bijdrage?.gem) || 0;
+}
+
+// ===== OVERSCHRIJVINGEN TUSSEN REKENINGEN =====
+// transfer_<van>_<naar>: bedrag dat van de ene rekening naar de andere gaat
+// Sleutels: man_vrouw, vrouw_man, gem_man, gem_vrouw
+function getTransfer(van, naar) {
+  const d = loadData();
+  return parseBedrag(d.transfers?.[van + '_' + naar]) || 0;
+}
+function setTransfer(van, naar, val) {
+  const d = loadData();
+  if (!d.transfers) d.transfers = {};
+  d.transfers[van + '_' + naar] = val;
+  saveData(d);
+  recalcAll();
+}
+// Totaal ontvangen overschrijvingen voor een rekening
+function getTotalOntvangen(rek) {
+  if (rek === 'man')  return getTransfer('vrouw','man') + getTransfer('gem','man');
+  if (rek === 'vrouw') return getTransfer('man','vrouw') + getTransfer('gem','vrouw');
+  return 0; // gem ontvangt via bijdragen, niet via transfers
+}
+// Totaal verstuurde overschrijvingen voor een rekening
+function getTotalVerstuur(rek) {
+  if (rek === 'man')  return getTransfer('man','vrouw');
+  if (rek === 'vrouw') return getTransfer('vrouw','man');
+  if (rek === 'gemeenschappelijk') return getTransfer('gem','man') + getTransfer('gem','vrouw');
+  return 0;
 }
 
 // ===== SPAREN =====
@@ -2984,13 +3226,26 @@ function calcCore() {
   const data = loadData();
 
   // Inkomsten (use persist fallback)
-  let davidIn = 0, laurenIn = 0;
+  let davidIn = 0, laurenIn = 0, gemExtraIn = 0;
   SCHEMA.man.inkomsten.forEach(i => {
     davidIn += parseBedrag(getValue('man', 'inkomsten', i.key, i.persist)) || 0;
   });
   SCHEMA.vrouw.inkomsten.forEach(i => {
     laurenIn += parseBedrag(getValue('vrouw', 'inkomsten', i.key, i.persist)) || 0;
   });
+  SCHEMA.gemeenschappelijk.inkomsten.forEach(i => {
+    gemExtraIn += parseBedrag(getValue('gemeenschappelijk', 'inkomsten', i.key, i.persist)) || 0;
+  });
+
+  // Overschrijvingen tussen rekeningen
+  const transferManVrouw = getTransfer('man', 'vrouw');
+  const transferVrouwMan = getTransfer('vrouw', 'man');
+  const transferGemMan   = getTransfer('gem', 'man');
+  const transferGemVrouw = getTransfer('gem', 'vrouw');
+
+  // Overschrijvingen tellen als inkomsten bij de ontvanger
+  davidIn  += transferVrouwMan + transferGemMan;
+  laurenIn += transferManVrouw + transferGemVrouw;
 
   // Uitgaven (excl. sparen, use persist fallback)
   let davidUit = 0, laurenUit = 0;
@@ -3005,9 +3260,13 @@ function calcCore() {
     else { laurenUit += parseBedrag(getValue('vrouw', 'uitgaven', i.key, i.persist)) || 0; }
   });
 
-  // Bijdragen
+  // Bijdragen naar gem. rekening
   const bijDavid  = getBijdrage('man');
   const bijLauren = getBijdrage('vrouw');
+
+  // Transfers toevoegen aan uitgaven van de verstuurder
+  davidUit  += transferManVrouw;
+  laurenUit += transferVrouwMan;
 
   // Gemeenschappelijke uitgaven (kwartaal = ÷3, use persist)
   let gemUit = 0;
@@ -3020,11 +3279,13 @@ function calcCore() {
       gemUit += v;
     }
   });
+  gemUit += transferGemMan + transferGemVrouw;
 
-  // Beschikbaar
+  // Beschikbaar (voor sparen)
   const davidBeschikbaar  = davidIn  - bijDavid  - davidUit;
   const laurenBeschikbaar = laurenIn - bijLauren - laurenUit;
-  const gemBeschikbaar    = (bijDavid + bijLauren) - gemUit;
+  const gemIn    = bijDavid + bijLauren + gemExtraIn;
+  const gemBeschikbaar    = gemIn - gemUit;
 
   // Sparen (David + Lauren only; gem has no spaar)
   const davidSpaarOverride  = getSpaarOverride('man');
@@ -3035,15 +3296,15 @@ function calcCore() {
 
   const davidSaldo  = davidBeschikbaar  - davidSpaar;
   const laurenSaldo = laurenBeschikbaar - laurenSpaar;
-  const gemIn    = bijDavid + bijLauren;
-  const gemSaldo = gemBeschikbaar; // gem has no spaar tab
+  const gemSaldo = gemBeschikbaar;
 
   const davidSpaarAuto  = davidSpaarOverride  === null;
   const laurenSpaarAuto = laurenSpaarOverride === null;
 
   return {
-    davidIn, laurenIn, davidUit, laurenUit, gemUit, gemIn,
+    davidIn, laurenIn, davidUit, laurenUit, gemUit, gemIn, gemExtraIn,
     bijDavid, bijLauren,
+    transferManVrouw, transferVrouwMan, transferGemMan, transferGemVrouw,
     davidBeschikbaar, laurenBeschikbaar, gemBeschikbaar,
     davidSpaar, laurenSpaar,
     davidSpaarAuto, laurenSpaarAuto,
@@ -3217,12 +3478,34 @@ function recalcAll() {
   animateAmtEl('gem-uitgaven',  c.gemUit);
   setSaldo('gem-saldo-card','gem-saldo', c.gemSaldo);
   showAlert('alert-gem', c.gemBeschikbaar, c.gemIn);
-  renderGemInkomstenCard(c.bijDavid, c.bijLauren);
+  renderGemInkomstenCard(c.bijDavid, c.bijLauren, c.gemExtraIn);
+  // Render gem extra inkomsten (vrije invoer)
+  renderSectionCard('gem-extra-inkomsten-card', 'gemeenschappelijk', 'inkomsten');
+
+  // Vul transfer inputvelden
+  function fillTransferInput(id, val) {
+    const el = document.getElementById(id);
+    if (el && document.activeElement !== el) el.value = val > 0 ? String(val) : '';
+  }
+  fillTransferInput('input-man-naar-vrouw',  c.transferManVrouw);
+  fillTransferInput('input-vrouw-naar-man',  c.transferVrouwMan);
+  fillTransferInput('input-gem-naar-man',    c.transferGemMan);
+  fillTransferInput('input-gem-naar-vrouw',  c.transferGemVrouw);
+  // Transfer totalen
+  const setTot = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = fmt(v); };
+  setTot('total-man-naar-vrouw',  c.transferManVrouw);
+  setTot('total-vrouw-naar-man',  c.transferVrouwMan);
+  setTot('total-gem-naar-man',    c.transferGemMan);
+  setTot('total-gem-naar-vrouw',  c.transferGemVrouw);
 
   // === OVERZICHT ===
-  // Totale uitgaven gezin = persoonlijke uitgaven + bijdragen aan gem. rekening
-  // Gem. uitgaven worden NIET apart opgeteld — die worden al gedekt door de bijdragen
-  const totalIn    = c.davidIn + c.laurenIn;
+  // davidUit/laurenUit bevatten al de transfers als uitgave.
+  // davidIn/laurenIn bevatten al de ontvangen transfers als inkomst.
+  // Op gezinsniveau annuleren interne transfers (man↔vrouw, gem→persoon) elkaar.
+  // Gebruik ruwe inkomsten (zonder ontvangen transfers) om dubbeltelling te vermijden.
+  const totalIn    = (c.davidIn - c.transferVrouwMan - c.transferGemMan)
+                   + (c.laurenIn - c.transferManVrouw - c.transferGemVrouw)
+                   + c.gemExtraIn;
   const totalUit   = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren;
   const totalSpaar = c.davidSpaar + c.laurenSpaar;
   const totalVrij  = totalIn - totalUit - totalSpaar;
@@ -3261,7 +3544,9 @@ function recalcAll() {
 
 // ===== OVERZICHT REKENINGEN =====
 function renderOverzichtRekeningen(c) {
-  const totalIn   = c.davidIn + c.laurenIn;
+  const totalIn   = (c.davidIn - c.transferVrouwMan - c.transferGemMan)
+                  + (c.laurenIn - c.transferManVrouw - c.transferGemVrouw)
+                  + c.gemExtraIn;
   const totalUit  = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren;
   const totalSpaar= c.davidSpaar + c.laurenSpaar;
   const totalSaldo= totalIn - totalUit - totalSpaar;
@@ -3506,8 +3791,9 @@ function renderRapportContent(tab) {
   try { data = JSON.parse(localStorage.getItem(mk) || '{}'); } catch {}
 
   if (tab === 'totaal') {
-    // Totale uitgaven = persoonlijke uitgaven + bijdragen (gem. uitgaven zitten al verwerkt via bijdragen)
-    const totalIn    = c.davidIn + c.laurenIn;
+    const totalIn    = (c.davidIn - c.transferVrouwMan - c.transferGemMan)
+                     + (c.laurenIn - c.transferManVrouw - c.transferGemVrouw)
+                     + c.gemExtraIn;
     const totalBij   = c.bijDavid + c.bijLauren;
     const totalUit   = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren;
     const totalSpaar = c.davidSpaar + c.laurenSpaar;
@@ -3775,9 +4061,13 @@ function renderAll() {
   renderSectionCard('man-uitgaven-card',   'man',              'uitgaven');
   renderSectionCard('vrouw-inkomsten-card','vrouw',            'inkomsten');
   renderSectionCard('vrouw-uitgaven-card', 'vrouw',            'uitgaven');
+  renderSectionCard('gem-extra-inkomsten-card', 'gemeenschappelijk', 'inkomsten');
   renderSectionCard('gem-uitgaven-card',   'gemeenschappelijk','uitgaven');
-  ['gem-inkomsten-card','gem-uitgaven-card'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('is-gem'); });
-  // gem inkomsten rendered dynamically in recalcAll
+  ['gem-inkomsten-card','gem-extra-inkomsten-card','gem-uitgaven-card'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('is-gem');
+  });
+  // gem inkomsten (bijdragen) rendered dynamically in recalcAll
 }
 
 // iOS install banner
@@ -4801,7 +5091,303 @@ function exportNaarCSV() {
 
 
 
-// ===== RESET MAAND =====
+// ===== EXCEL EXPORT MAAND =====
+function exportMaandNaarExcel() {
+  if (typeof XLSX === 'undefined') {
+    alert('Excel bibliotheek nog niet geladen. Probeer opnieuw.');
+    return;
+  }
+
+  const maandNaam = MAANDEN[currentMonth] + ' ' + currentYear;
+  const data = loadData();
+  const wb = XLSX.utils.book_new();
+
+  // Helper: schone label zonder emoji
+  function cleanLabel(label) {
+    return label.replace(/[\u{1F300}-\u{1FFFF}]/gu, '').replace(/[\u2000-\u206F]/g, '').trim();
+  }
+
+  // ===== SHEET 1: DAVID =====
+  const davidRows = [['Categorie', 'Type', 'Bedrag (€)']];
+  davidRows.push(['--- INKOMSTEN ---', '', '']);
+  SCHEMA.man.inkomsten.forEach(i => {
+    const v = parseBedrag(data.man?.inkomsten?.[i.key]) || 0;
+    davidRows.push([cleanLabel(i.label), 'Inkomsten', v]);
+  });
+  davidRows.push(['Bijdrage gem. rekening', 'Overschrijving', parseBedrag(data.man?.bijdrage?.gem) || 0]);
+  davidRows.push(['Overschrijving naar Lauren', 'Overschrijving', parseBedrag(data.transfers?.man_vrouw) || 0]);
+  davidRows.push(['--- UITGAVEN ---', '', '']);
+  SCHEMA.man.uitgaven.forEach(i => {
+    if (i.overige) {
+      loadOverige('man', 'uitgaven').forEach(o => {
+        davidRows.push([o.label || 'Overige uitgave', 'Overige', parseBedrag(o.bedrag) || 0]);
+      });
+    } else if (i.abonnementen) {
+      ABONNEMENTEN_ITEMS.forEach(ab => {
+        const v = parseBedrag(data.man?.abonnementen?.[ab.key]) || 0;
+        if (v > 0) davidRows.push([cleanLabel(ab.label), 'Abonnement', v]);
+      });
+    } else {
+      const v = parseBedrag(data.man?.uitgaven?.[i.key]) || 0;
+      davidRows.push([cleanLabel(i.label), 'Uitgave', v]);
+    }
+  });
+  davidRows.push(['Sparen', 'Sparen', parseBedrag(data.man?.sparen?.override) || 0]);
+
+  // ===== SHEET 2: LAUREN =====
+  const laurenRows = [['Categorie', 'Type', 'Bedrag (€)']];
+  laurenRows.push(['--- INKOMSTEN ---', '', '']);
+  SCHEMA.vrouw.inkomsten.forEach(i => {
+    const v = parseBedrag(data.vrouw?.inkomsten?.[i.key]) || 0;
+    laurenRows.push([cleanLabel(i.label), 'Inkomsten', v]);
+  });
+  laurenRows.push(['Bijdrage gem. rekening', 'Overschrijving', parseBedrag(data.vrouw?.bijdrage?.gem) || 0]);
+  laurenRows.push(['Overschrijving naar David', 'Overschrijving', parseBedrag(data.transfers?.vrouw_man) || 0]);
+  laurenRows.push(['--- UITGAVEN ---', '', '']);
+  SCHEMA.vrouw.uitgaven.forEach(i => {
+    if (i.overige) {
+      loadOverige('vrouw', 'uitgaven').forEach(o => {
+        laurenRows.push([o.label || 'Overige uitgave', 'Overige', parseBedrag(o.bedrag) || 0]);
+      });
+    } else if (i.abonnementen) {
+      ABONNEMENTEN_ITEMS.forEach(ab => {
+        const v = parseBedrag(data.vrouw?.abonnementen?.[ab.key]) || 0;
+        if (v > 0) laurenRows.push([cleanLabel(ab.label), 'Abonnement', v]);
+      });
+    } else {
+      const v = parseBedrag(data.vrouw?.uitgaven?.[i.key]) || 0;
+      laurenRows.push([cleanLabel(i.label), 'Uitgave', v]);
+    }
+  });
+  laurenRows.push(['Sparen', 'Sparen', parseBedrag(data.vrouw?.sparen?.override) || 0]);
+
+  // ===== SHEET 3: GEMEENSCHAPPELIJK =====
+  const gemRows = [['Categorie', 'Type', 'Bedrag (€)']];
+  gemRows.push(['--- INKOMSTEN ---', '', '']);
+  SCHEMA.gemeenschappelijk.inkomsten.forEach(i => {
+    const v = parseBedrag(data.gemeenschappelijk?.inkomsten?.[i.key]) || 0;
+    gemRows.push([cleanLabel(i.label), 'Inkomsten', v]);
+  });
+  gemRows.push(['Overschrijving naar David', 'Overschrijving', parseBedrag(data.transfers?.gem_man) || 0]);
+  gemRows.push(['Overschrijving naar Lauren', 'Overschrijving', parseBedrag(data.transfers?.gem_vrouw) || 0]);
+  gemRows.push(['--- UITGAVEN ---', '', '']);
+  SCHEMA.gemeenschappelijk.uitgaven.forEach(i => {
+    if (i.overige) {
+      loadOverige('gemeenschappelijk', 'uitgaven').forEach(o => {
+        gemRows.push([o.label || 'Overige uitgave', 'Overige', parseBedrag(o.bedrag) || 0]);
+      });
+    } else if (i.abonnementen) {
+      ABONNEMENTEN_ITEMS.forEach(ab => {
+        const v = parseBedrag(data.gemeenschappelijk?.abonnementen?.[ab.key]) || 0;
+        if (v > 0) gemRows.push([cleanLabel(ab.label), 'Abonnement', v]);
+      });
+    } else {
+      let v = parseBedrag(data.gemeenschappelijk?.uitgaven?.[i.key]) || 0;
+      if (i.tag === 'kwartaal') v = Math.round(v / 3);
+      gemRows.push([cleanLabel(i.label) + (i.tag === 'kwartaal' ? ' (÷3)' : ''), 'Uitgave', v]);
+    }
+  });
+
+  // ===== NOTITIE =====
+  const notitie = localStorage.getItem(sessionKey('notitie_' + currentYear + '-' + String(currentMonth+1).padStart(2,'0'))) || '';
+
+  // Maak sheets aan
+  function maakSheet(rows, totaalCol) {
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{ wch: 32 }, { wch: 16 }, { wch: 14 }];
+    // Voeg SOM toe onderaan kolom C
+    const lastRow = rows.length;
+    ws['C' + (lastRow + 2)] = { f: `SUM(C2:C${lastRow})`, t: 'n' };
+    ws['A' + (lastRow + 2)] = { v: 'TOTAAL', t: 's' };
+    return ws;
+  }
+
+  const wsInfo = XLSX.utils.aoa_to_sheet([
+    ['Gezinsbudget export'],
+    ['Maand', maandNaam],
+    ['Geëxporteerd op', new Date().toLocaleDateString('nl-BE')],
+    [],
+    ['Notitie', notitie],
+  ]);
+  wsInfo['!cols'] = [{ wch: 20 }, { wch: 40 }];
+
+  XLSX.utils.book_append_sheet(wb, wsInfo, 'Info');
+  XLSX.utils.book_append_sheet(wb, maakSheet(davidRows), 'David');
+  XLSX.utils.book_append_sheet(wb, maakSheet(laurenRows), 'Lauren');
+  XLSX.utils.book_append_sheet(wb, maakSheet(gemRows), 'Gemeenschappelijk');
+
+  const filename = `gezinsbudget_${currentYear}_${String(currentMonth+1).padStart(2,'0')}_${MAANDEN[currentMonth]}.xlsx`;
+  XLSX.writeFile(wb, filename);
+}
+
+// ===== EXCEL IMPORT MAAND =====
+function importeerMaandVanExcel(inputEl) {
+  const file = inputEl.files[0];
+  if (!file) return;
+  if (typeof XLSX === 'undefined') { alert('Excel bibliotheek nog niet geladen.'); return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+
+      // Helper: zoek rij op labelnaam (eerste kolom, case-insensitive, zonder emoji)
+      function vindBedrag(ws, zoekLabel) {
+        const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:C1');
+        for (let r = range.s.r; r <= range.e.r; r++) {
+          const cel = ws[XLSX.utils.encode_cell({ r, c: 0 })];
+          if (!cel) continue;
+          const celTekst = String(cel.v || '').toLowerCase().trim();
+          const zoekTekst = zoekLabel.toLowerCase().trim();
+          if (celTekst === zoekTekst || celTekst.includes(zoekTekst) || zoekTekst.includes(celTekst)) {
+            const bedragCel = ws[XLSX.utils.encode_cell({ r, c: 2 })];
+            const v = parseBedrag(bedragCel?.v);
+            return v > 0 ? String(v) : '';
+          }
+        }
+        return null;
+      }
+
+      function cleanLabel(label) {
+        return label.replace(/[\u{1F300}-\u{1FFFF}]/gu, '').replace(/[\u2000-\u206F]/g, '').trim();
+      }
+
+      // Lees overige items uit sheet (rijen met type 'Overige')
+      function vindOverige(ws) {
+        if (!ws || !ws['!ref']) return [];
+        return XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
+          .filter(r => String(r[1] || '').toLowerCase() === 'overige' && parseBedrag(r[2]) > 0)
+          .map(r => ({ label: String(r[0] || ''), bedrag: String(parseBedrag(r[2])) }));
+      }
+
+      const d = loadData();
+
+      // === DAVID ===
+      const wsMan = wb.Sheets['David'];
+      if (wsMan) {
+        if (!d.man) d.man = {};
+        if (!d.man.inkomsten) d.man.inkomsten = {};
+        if (!d.man.uitgaven) d.man.uitgaven = {};
+        if (!d.man.abonnementen) d.man.abonnementen = {};
+        SCHEMA.man.inkomsten.forEach(i => {
+          const v = vindBedrag(wsMan, cleanLabel(i.label));
+          if (v !== null) d.man.inkomsten[i.key] = v;
+        });
+        SCHEMA.man.uitgaven.forEach(i => {
+          if (i.overige || i.abonnementen) return;
+          const v = vindBedrag(wsMan, cleanLabel(i.label));
+          if (v !== null) d.man.uitgaven[i.key] = v;
+        });
+        // Overige items importeren
+        const manOverige = vindOverige(wsMan);
+        saveOverigeDirect('man', 'uitgaven', manOverige);
+        ABONNEMENTEN_ITEMS.forEach(ab => {
+          const v = vindBedrag(wsMan, cleanLabel(ab.label));
+          if (v !== null) d.man.abonnementen[ab.key] = v;
+        });
+        const bij = vindBedrag(wsMan, 'Bijdrage gem. rekening');
+        if (bij !== null) { if (!d.man.bijdrage) d.man.bijdrage = {}; d.man.bijdrage.gem = bij; }
+        const spaar = vindBedrag(wsMan, 'Sparen');
+        if (spaar !== null) { if (!d.man.sparen) d.man.sparen = {}; d.man.sparen.override = spaar || null; }
+        const transManVrouw = vindBedrag(wsMan, 'Overschrijving naar Lauren');
+        if (transManVrouw !== null) { if (!d.transfers) d.transfers = {}; d.transfers.man_vrouw = transManVrouw; }
+      }
+
+      // === LAUREN ===
+      const wsVrouw = wb.Sheets['Lauren'];
+      if (wsVrouw) {
+        if (!d.vrouw) d.vrouw = {};
+        if (!d.vrouw.inkomsten) d.vrouw.inkomsten = {};
+        if (!d.vrouw.uitgaven) d.vrouw.uitgaven = {};
+        if (!d.vrouw.abonnementen) d.vrouw.abonnementen = {};
+        SCHEMA.vrouw.inkomsten.forEach(i => {
+          const v = vindBedrag(wsVrouw, cleanLabel(i.label));
+          if (v !== null) d.vrouw.inkomsten[i.key] = v;
+        });
+        SCHEMA.vrouw.uitgaven.forEach(i => {
+          if (i.overige || i.abonnementen) return;
+          const v = vindBedrag(wsVrouw, cleanLabel(i.label));
+          if (v !== null) d.vrouw.uitgaven[i.key] = v;
+        });
+        // Overige items importeren
+        const vrouwOverige = vindOverige(wsVrouw);
+        saveOverigeDirect('vrouw', 'uitgaven', vrouwOverige);
+        ABONNEMENTEN_ITEMS.forEach(ab => {
+          const v = vindBedrag(wsVrouw, cleanLabel(ab.label));
+          if (v !== null) d.vrouw.abonnementen[ab.key] = v;
+        });
+        const bij = vindBedrag(wsVrouw, 'Bijdrage gem. rekening');
+        if (bij !== null) { if (!d.vrouw.bijdrage) d.vrouw.bijdrage = {}; d.vrouw.bijdrage.gem = bij; }
+        const spaar = vindBedrag(wsVrouw, 'Sparen');
+        if (spaar !== null) { if (!d.vrouw.sparen) d.vrouw.sparen = {}; d.vrouw.sparen.override = spaar || null; }
+        const transVrouwMan = vindBedrag(wsVrouw, 'Overschrijving naar David');
+        if (transVrouwMan !== null) { if (!d.transfers) d.transfers = {}; d.transfers.vrouw_man = transVrouwMan; }
+      }
+
+      // === GEMEENSCHAPPELIJK ===
+      const wsGem = wb.Sheets['Gemeenschappelijk'];
+      if (wsGem) {
+        if (!d.gemeenschappelijk) d.gemeenschappelijk = {};
+        if (!d.gemeenschappelijk.inkomsten) d.gemeenschappelijk.inkomsten = {};
+        if (!d.gemeenschappelijk.uitgaven) d.gemeenschappelijk.uitgaven = {};
+        if (!d.gemeenschappelijk.abonnementen) d.gemeenschappelijk.abonnementen = {};
+        SCHEMA.gemeenschappelijk.inkomsten.forEach(i => {
+          const v = vindBedrag(wsGem, cleanLabel(i.label));
+          if (v !== null) d.gemeenschappelijk.inkomsten[i.key] = v;
+        });
+        SCHEMA.gemeenschappelijk.uitgaven.forEach(i => {
+          if (i.overige || i.abonnementen) return;
+          const zoek = cleanLabel(i.label) + (i.tag === 'kwartaal' ? ' (÷3)' : '');
+          const v = vindBedrag(wsGem, zoek) ?? vindBedrag(wsGem, cleanLabel(i.label));
+          if (v !== null) {
+            d.gemeenschappelijk.uitgaven[i.key] = i.tag === 'kwartaal' && v
+              ? String(parseBedrag(v) * 3) : v;
+          }
+        });
+        // Overige items importeren
+        const gemOverige = vindOverige(wsGem);
+        saveOverigeDirect('gemeenschappelijk', 'uitgaven', gemOverige);
+        ABONNEMENTEN_ITEMS.forEach(ab => {
+          const v = vindBedrag(wsGem, cleanLabel(ab.label));
+          if (v !== null) d.gemeenschappelijk.abonnementen[ab.key] = v;
+        });
+        const transGemMan = vindBedrag(wsGem, 'Overschrijving naar David');
+        if (transGemMan !== null) { if (!d.transfers) d.transfers = {}; d.transfers.gem_man = transGemMan; }
+        const transGemVrouw = vindBedrag(wsGem, 'Overschrijving naar Lauren');
+        if (transGemVrouw !== null) { if (!d.transfers) d.transfers = {}; d.transfers.gem_vrouw = transGemVrouw; }
+      }
+
+      // === NOTITIE ===
+      const wsInfo = wb.Sheets['Info'];
+      if (wsInfo) {
+        const notitieRij = XLSX.utils.sheet_to_json(wsInfo, { header: 1 }).find(r => r[0] === 'Notitie');
+        if (notitieRij?.[1]) {
+          localStorage.setItem(sessionKey('notitie_' + currentYear + '-' + String(currentMonth+1).padStart(2,'0')), String(notitieRij[1]));
+        }
+      }
+
+      // Direct opslaan naar Firebase (geen debounce)
+      _fbCache[fbKey(getKey())] = JSON.stringify(d);
+      fbSetDirect(getKey(), JSON.stringify(d));
+      renderAll();
+      recalcAll();
+      renderMaandNotitie();
+
+      // Bevestiging
+      const btn = document.querySelector('[onclick*="excel-import-input"]');
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✅ Geïmporteerd!';
+        setTimeout(() => { btn.innerHTML = orig; }, 2500);
+      }
+    } catch(err) {
+      alert('Fout bij importeren: ' + err.message + '\nZorg dat je een geldig Gezinsbudget Excel-bestand importeert.');
+    }
+    // Reset file input zodat dezelfde file opnieuw gekozen kan worden
+    inputEl.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
 function openResetMaand() {
   const el = document.getElementById('reset-modal-maand');
   if (el) el.textContent = MAANDEN[currentMonth] + ' ' + currentYear;
