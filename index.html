@@ -1813,6 +1813,7 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
 #gem-naar-vrouw-card {
   display: none !important;
 }
+#gem-extra-inkomsten-card { display: none !important; }
 </style>
 </head>
 <body>
@@ -2213,7 +2214,6 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
               <th>Inkomsten</th>
               <th>Uitgaven</th>
               <th>Gespaard</th>
-              <th>Vrij saldo</th>
             </tr></thead>
             <tbody id="jaar-tbody"></tbody>
           </table>
@@ -2761,6 +2761,8 @@ function verwijderUitgaveRij(rek, type, key) {
     delete d[rek][type][key];
     saveData(d);
   }
+  // Sluit het panel voor dit item (het bestaat niet meer)
+  closeTilePanel('tile-panel-' + rek + '-' + type + '-' + key);
   renderAll();
   recalcAll();
 }
@@ -2995,15 +2997,13 @@ function setupIncomeSwipeClose() {
 }
 
 // Voeg een extra bedrag toe aan een bestaand overige item (inline prompt)
-function addToOverigeItem(rek, type, idx) {
-  const extra = parseBedrag(prompt('Hoeveel toevoegen?') || '');
-  if (!extra || extra <= 0) return;
-  const list = loadOverige(rek, type);
-  if (!list[idx]) return;
-  list[idx].bedrag = String((parseBedrag(list[idx].bedrag) || 0) + extra);
-  saveOverige(rek, type, list);
-  renderAll();
-  recalcAll();
+function addToOverigeItem(rek, listKey, idx) {
+  // Focus het bedrag-input van deze rij zodat de gebruiker een bedrag kan ingeven
+  const row = document.getElementById('ov-row-' + rek + '-' + listKey + '-' + idx);
+  if (row) {
+    const bedragInp = row.querySelector('.overige-bedrag-input');
+    if (bedragInp) { bedragInp.focus(); bedragInp.select(); }
+  }
 }
 
 // ===== QUICK TRANSFER (OVERSCHRIJVINGEN) =====
@@ -3326,15 +3326,38 @@ function heeftVasteItemsVorigeMaand() {
 }
 
 function kopieerVasteItemsVanVorigeMaand() {
-  // Bepaal vorige maand
-  let pm = currentMonth - 1, py = currentYear;
-  if (pm < 0) { pm = 11; py--; }
-  const prevBudgetKey = sessionKey('budget_' + py + '-' + String(pm+1).padStart(2,'0'));
-  const prevVVKey     = sessionKey('vastvar_' + py + '-' + String(pm+1).padStart(2,'0'));
-
+  // Zoek de LAATSTE INGEVULDE maand (niet noodzakelijk vorige maand)
+  let pm = -1, py = currentYear;
   let prevData = {}, prevVV = {};
-  try { prevData = JSON.parse(localStorage.getItem(prevBudgetKey) || '{}'); } catch {}
-  try { prevVV   = JSON.parse(localStorage.getItem(prevVVKey)     || '{}'); } catch {}
+  // Ga terug tot 24 maanden
+  for (let delta = 1; delta <= 24; delta++) {
+    let tm = currentMonth - delta, ty = currentYear;
+    while (tm < 0) { tm += 12; ty--; }
+    const tryKey = sessionKey('budget_' + ty + '-' + String(tm+1).padStart(2,'0'));
+    let tryData = {};
+    try { tryData = JSON.parse(localStorage.getItem(tryKey) || '{}'); } catch {}
+    // Controleer of er data in zit
+    const hasData = Object.keys(tryData).some(rek =>
+      ['inkomsten','uitgaven'].some(type =>
+        tryData[rek] && tryData[rek][type] && Object.keys(tryData[rek][type]).some(k => {
+          const v = parseBedrag(tryData[rek][type][k]);
+          return v && v > 0;
+        })
+      )
+    );
+    if (hasData) {
+      pm = tm; py = ty; prevData = tryData;
+      const prevVVKey = sessionKey('vastvar_' + ty + '-' + String(tm+1).padStart(2,'0'));
+      try { prevVV = JSON.parse(localStorage.getItem(prevVVKey) || '{}'); } catch {}
+      break;
+    }
+  }
+  if (pm === -1) {
+    // Geen data gevonden
+    const btn = document.getElementById('copy-recurring-btn');
+    if (btn) { btn.textContent = '⚠ Geen vorige data gevonden'; setTimeout(() => { btn.textContent = '🔁 Kopieer vaste inkomsten en kosten van vorige maand'; }, 2500); }
+    return;
+  }
 
   const curData = loadData();
   const curVV   = loadVastVar();
@@ -3406,12 +3429,12 @@ function kopieerVasteItemsVanVorigeMaand() {
   const btn = document.getElementById('copy-recurring-btn');
   if (btn) {
     btn.textContent = copied > 0
-      ? '\u2713 ' + copied + ' vaste kosten ingevuld'
+      ? '\u2713 ' + copied + ' vaste items ingevuld'
       : '\u2713 Geen nieuwe vaste kosten gevonden';
     btn.style.background = copied > 0 ? 'var(--green)' : 'var(--text-2)';
     btn.style.color = 'white';
     setTimeout(function() {
-      btn.textContent = '\uD83D\uDD01 Kopieer vaste kosten van vorige maand';
+      btn.textContent = '\uD83D\uDD01 Kopieer vaste inkomsten en kosten van vorige maand';
       btn.style.background = '';
       btn.style.color = '';
     }, 3000);
@@ -3490,6 +3513,8 @@ function renderSectionCard(containerId, rek, type) {
 
       const {emoji, text} = extractEmoji(item.label);
       const panelId = 'extra-panel-' + rek + '-' + item.key;
+      // Extra inkomsten = altijd groen
+      const extraTileBg = 'var(--green-light)'; const extraTileBorder = 'var(--green-mid)'; const extraTileColor = 'var(--green)';
 
       const subRows = list.map((it, idx) => `
         <div class="overige-sub-row" id="ov-row-${rek}-${listKey}-${idx}">
@@ -3711,27 +3736,47 @@ function addTileNotitie(rek, listKey) {
 function renderGemInkomstenCard(bijDavid, bijLauren, gemExtraIn) {
   const container = document.getElementById('gem-inkomsten-card');
   if (!container) return;
-  container.classList.add('is-gem');
   const total = bijDavid + bijLauren + (gemExtraIn || 0);
-  container.innerHTML = `
-    <div class="section-hdr">
-      <span>Ontvangen bijdragen</span>
-      <span class="total" id="total-gemeenschappelijk-inkomsten">${fmt(total)}</span>
-    </div>
-    <div class="budget-row">
-      <span class="row-label" style="color:var(--david)">
-        💙 David → gem. rekening
-        <span class="row-tag" style="background:var(--david-light);color:var(--david)">Automatisch</span>
-      </span>
-      <span class="row-readonly" style="color:var(--david)">${fmt(bijDavid)}</span>
-    </div>
-    <div class="budget-row">
-      <span class="row-label" style="color:var(--lauren)">
-        🌺 Lauren → gem. rekening
-        <span class="row-tag" style="background:var(--lauren-light);color:var(--lauren)">Automatisch</span>
-      </span>
-      <span class="row-readonly" style="color:var(--lauren)">${fmt(bijLauren)}</span>
-    </div>`;
+
+  // Bouw tegels voor bijdragen — altijd groen (= inkomsten van de gem. rekening)
+  let tiles = '';
+  let panels = '';
+
+  if (bijDavid > 0) {
+    const pid = 'gem-ink-david-panel';
+    tiles += '<div class="rtile rtile-has" onclick="toggleTilePanel(\'' + pid + '\') " style="border-color:var(--green-mid);background:var(--green-light)">'
+      + '<div class="rtile-icon">💙</div>'
+      + '<div class="rtile-label">David</div>'
+      + '<div class="rtile-amt" style="color:var(--green)">' + fmt(bijDavid) + '</div>'
+      + '<div class="rtile-chev" id="' + pid + '-chevron">⌄</div>'
+      + '</div>';
+    panels += '<div class="tile-panel" id="' + pid + '" style="display:none">'
+      + '<div style="padding:12px 14px;font-size:13px;color:var(--text-2)">Automatisch berekend vanuit bijdrage David → gem. rekening.<br><strong style="color:var(--green)">' + fmt(bijDavid) + '</strong></div>'
+      + '</div>';
+  }
+  if (bijLauren > 0) {
+    const pid = 'gem-ink-lauren-panel';
+    tiles += '<div class="rtile rtile-has" onclick="toggleTilePanel(\'' + pid + '\')" style="border-color:var(--green-mid);background:var(--green-light)">'
+      + '<div class="rtile-icon">🌺</div>'
+      + '<div class="rtile-label">Lauren</div>'
+      + '<div class="rtile-amt" style="color:var(--green)">' + fmt(bijLauren) + '</div>'
+      + '<div class="rtile-chev" id="' + pid + '-chevron">⌄</div>'
+      + '</div>';
+    panels += '<div class="tile-panel" id="' + pid + '" style="display:none">'
+      + '<div style="padding:12px 14px;font-size:13px;color:var(--text-2)">Automatisch berekend vanuit bijdrage Lauren → gem. rekening.<br><strong style="color:var(--green)">' + fmt(bijLauren) + '</strong></div>'
+      + '</div>';
+  }
+
+  if (!tiles) {
+    container.innerHTML = '<div class="section-hdr"><span>Inkomsten</span><span class="total" id="total-gemeenschappelijk-inkomsten">€0</span></div>'
+      + '<div style="padding:12px 16px;font-size:13px;color:var(--text-3)">Nog niets ingevuld</div>';
+    return;
+  }
+
+  container.innerHTML =
+    '<div class="section-hdr"><span>Inkomsten</span><span class="total" id="total-gemeenschappelijk-inkomsten">' + fmt(total) + '</span></div>'
+    + '<div class="rtile-grid">' + tiles + '</div>'
+    + panels;
 }
 
 // ===== + KNOP BIJ OVERSCHRIJVINGEN =====
@@ -4175,29 +4220,31 @@ function recalcAll() {
   });
 
   // === DAVID panel ===
-  animateAmtEl('man-inkomsten', c.davidIn);
-  animateAmtEl('man-bijdrage',  c.bijDavid);
-  animateAmtEl('man-uitgaven',  c.davidUit);
+  animateAmtEl('man-inkomsten', c.davidIn, 'var(--green)');
+  animateAmtEl('man-bijdrage',  c.bijDavid, 'var(--blue)');
+  animateAmtEl('man-uitgaven',  c.davidUit, 'var(--rose)');
   animateAmtEl('man-sparen-stat', c.davidSpaar);
   setSaldo('man-saldo-card','man-saldo', c.davidSaldo);
   showAlert('alert-man', c.davidBeschikbaar, c.davidIn);
 
   // === LAUREN panel ===
-  animateAmtEl('vrouw-inkomsten', c.laurenIn);
-  animateAmtEl('vrouw-bijdrage',  c.bijLauren);
-  animateAmtEl('vrouw-uitgaven',  c.laurenUit);
+  animateAmtEl('vrouw-inkomsten', c.laurenIn, 'var(--green)');
+  animateAmtEl('vrouw-bijdrage',  c.bijLauren, 'var(--blue)');
+  animateAmtEl('vrouw-uitgaven',  c.laurenUit, 'var(--rose)');
   animateAmtEl('vrouw-sparen-stat', c.laurenSpaar);
   setSaldo('vrouw-saldo-card','vrouw-saldo', c.laurenSaldo);
   showAlert('alert-vrouw', c.laurenBeschikbaar, c.laurenIn);
 
   // === GEMEENSCHAPPELIJK panel (geen spaar) ===
-  animateAmtEl('gem-inkomsten', c.gemIn);
-  animateAmtEl('gem-uitgaven',  c.gemUit);
+  animateAmtEl('gem-inkomsten', c.gemIn, 'var(--green)');
+  animateAmtEl('gem-uitgaven',  c.gemUit, 'var(--rose)');
   setSaldo('gem-saldo-card','gem-saldo', c.gemSaldo);
   showAlert('alert-gem', c.gemBeschikbaar, c.gemIn);
+  // Kleur gem-saldo rood als negatief
+  const gemSaldoEl = document.getElementById('gem-saldo');
+  if (gemSaldoEl) gemSaldoEl.style.color = c.gemSaldo < 0 ? 'var(--rose)' : 'var(--gem)';
   renderGemInkomstenCard(c.bijDavid, c.bijLauren, c.gemExtraIn);
-  // Render gem extra inkomsten (vrije invoer)
-  renderSectionCard('gem-extra-inkomsten-card', 'gemeenschappelijk', 'inkomsten');
+  // gem-extra-inkomsten-card is nu geïntegreerd in gem-inkomsten-card
 
 
   // === OVERZICHT ===
@@ -4808,7 +4855,7 @@ function renderAll() {
   renderSectionCard('vrouw-uitgaven-card', 'vrouw',            'uitgaven');
   renderSectionCard('gem-extra-inkomsten-card', 'gemeenschappelijk', 'inkomsten');
   renderSectionCard('gem-uitgaven-card',   'gemeenschappelijk','uitgaven');
-  ['gem-inkomsten-card','gem-extra-inkomsten-card','gem-uitgaven-card'].forEach(id => {
+  ['gem-inkomsten-card','gem-uitgaven-card'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('is-gem');
   });
@@ -5185,7 +5232,10 @@ function openQuickInvoer() {
   if (searchEl) { searchEl.value = ''; }
   // Scroll categorie list naar boven
   const scroll = document.getElementById('quick-cat-scroll');
-  if (scroll) scroll.scrollTop = 0;
+  if (scroll) { scroll.scrollTop = 0; }
+  // Zet min-height op de categorielijst zodat sheet niet inkrimpt bij zoeken
+  const catList = document.getElementById('quick-cat-list');
+  if (catList) { setTimeout(() => { catList.style.minHeight = catList.scrollHeight + 'px'; }, 200); }
   // Spring automatisch naar de huidige actieve tab
   const activeTab = TAB_ORDER[currentTabIdx];
   if (activeTab === 'man' || activeTab === 'vrouw' || activeTab === 'gemeenschappelijk') {
@@ -5919,7 +5969,7 @@ function renderJaarTab() {
     totSpaar += tSpaar;
     totSaldo += saldo;
 
-    const saldoColor = saldo > 0 ? 'color:var(--green)' : saldo < 0 ? 'color:var(--rose)' : 'color:var(--text-2)';
+    const spaarColor = tSpaar < 0 ? 'color:var(--rose)' : 'color:var(--teal)';
     const notitieKey = sessionKey('notitie_' + currentYear + '-' + String(m+1).padStart(2,'0'));
     const notitie = localStorage.getItem(notitieKey) || '';
     const notitieHtml = notitie ? `<div style="font-size:10px;color:var(--text-2);font-style:italic;margin-top:2px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${notitie}</div>` : '';
@@ -5928,19 +5978,18 @@ function renderJaarTab() {
       <td><div>${MAANDEN[m].substring(0,3)}</div>${notitieHtml}</td>
       <td style="color:var(--green)">${hasData || isCur ? fmt(tIn) : '—'}</td>
       <td style="color:var(--rose)">${hasData || isCur ? fmt(tUit) : '—'}</td>
-      <td style="color:var(--teal)">${hasData || isCur ? fmt(tSpaar) : '—'}</td>
-      <td style="${saldoColor}">${hasData || isCur ? fmt(saldo) : '—'}</td>
+      <td style="${spaarColor}">${hasData || isCur ? fmt(tSpaar) : '—'}</td>
     </tr>`;
   }
 
   // Totaalrij
   const totSaldoColor = totSaldo > 0 ? 'color:var(--green)' : totSaldo < 0 ? 'color:var(--rose)' : '';
+  const totSpaarColor = totSpaar < 0 ? 'color:var(--rose)' : 'color:var(--teal)';
   rows += `<tr class="totaal-row">
     <td>Totaal</td>
     <td style="color:var(--green)">${fmt(totIn)}</td>
     <td style="color:var(--rose)">${fmt(totUit)}</td>
-    <td style="color:var(--teal)">${fmt(totSpaar)}</td>
-    <td style="${totSaldoColor}">${fmt(totSaldo)}</td>
+    <td style="${totSpaarColor}">${fmt(totSpaar)}</td>
   </tr>`;
 
   tbody.innerHTML = rows;
@@ -6432,7 +6481,7 @@ function renderTransferTiles(rek, c) {
   } else if (rek === 'vrouw') {
     if (c.bijLauren > 0)       transfers.push({ label: '🏡 Gem. rekening', amt: c.bijLauren,       color: 'var(--blue)',   bg: 'var(--blue-light)',   border: 'var(--blue-mid)',   addId: 'add-vrouw-bijdrage',  addType: 'bijdrage', van: 'vrouw', naar: 'gem'  });
     if (c.transferVrouwMan > 0) transfers.push({ label: '💙 → David',       amt: c.transferVrouwMan, color: 'var(--david)', bg: 'var(--david-light)',  border: 'var(--david-mid)',  addId: 'add-vrouw-naar-man',  addType: 'transfer', van: 'vrouw', naar: 'man'  });
-  } else {
+  } else { // gemeenschappelijk
     if (c.transferGemMan > 0)   transfers.push({ label: '💙 → David',   amt: c.transferGemMan,   color: 'var(--david)', bg: 'var(--david-light)',  border: 'var(--david-mid)',  addId: 'add-gem-naar-man',   addType: 'transfer', van: 'gem', naar: 'man'  });
     if (c.transferGemVrouw > 0) transfers.push({ label: '🌺 → Lauren',  amt: c.transferGemVrouw, color: 'var(--lauren)',bg: 'var(--lauren-light)', border: 'var(--lauren-mid)', addId: 'add-gem-naar-vrouw', addType: 'transfer', van: 'gem', naar: 'vrouw'});
   }
@@ -6457,9 +6506,12 @@ function renderTransferTiles(rek, c) {
       : "verwijderTransfer('transfer','" + t.van + "','" + t.naar + "')";
 
     panelsHtml += '<div class="tile-panel" id="' + pid + '" style="display:none">'
-      + '<div style="padding:10px 14px;display:flex;gap:8px;align-items:center">'
+      + '<div style="padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
         + '<span style="font-size:13px;color:var(--text-2)">Huidig: <strong style="color:' + t.color + '">' + fmt(t.amt) + '</strong></span>'
-        + '<button class="overige-del-btn" style="margin-left:auto" onclick="' + delFn + ';closeTilePanel(\'' + pid + '\');renderAll();recalcAll()">🗑 Verwijder</button>'
+        + '<div style="margin-left:auto;display:flex;gap:6px;align-items:center">'
+        + xferVVBadge(t.addType, t.van, t.naar, t.color)
+        + '<button class="overige-del-btn" onclick="' + delFn + ';closeTilePanel(\'' + pid + '\');renderAll();recalcAll()">🗑</button>'
+        + '</div>'
       + '</div>'
       + '<div style="padding:0 14px 12px;display:flex;gap:8px">'
         + '<input type="text" inputmode="decimal" id="' + pid + '-inp" placeholder="Bedrag toevoegen" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text);-webkit-appearance:none">'
