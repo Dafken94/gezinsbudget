@@ -1202,6 +1202,8 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   transition: background 0.12s, border-color 0.12s, transform 0.1s;
   text-align: center;
   min-height: 68px;
+  max-height: 90px;
+  align-self: start;
   position: relative;
   user-select: none;
 }
@@ -1814,6 +1816,7 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
   display: none !important;
 }
 #gem-extra-inkomsten-card { display: none !important; }
+.quick-hidden { visibility: hidden !important; pointer-events: none !important; }
 </style>
 </head>
 <body>
@@ -2288,7 +2291,7 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
   </div>
   <!-- Categorie tegels -->
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -4px" id="quick-cat-scroll">
-    <div id="quick-cat-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 4px 8px"></div>
+    <div id="quick-cat-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 4px 8px;align-content:start"></div>
     <div id="quick-no-results" style="display:none;padding:20px 0;text-align:center;color:var(--text-2);font-size:14px">Geen resultaten</div>
   </div>
   <!-- Bedrag invoer popup (verschijnt als item geselecteerd) -->
@@ -2330,7 +2333,7 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
   </div>
   <!-- Inkomsten tegels -->
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -4px" id="quick-income-scroll">
-    <div id="quick-income-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 4px 8px"></div>
+    <div id="quick-income-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 4px 8px;align-content:start"></div>
     <div id="quick-income-no-results" style="display:none;padding:20px 0;text-align:center;color:var(--text-2);font-size:14px">Geen resultaten</div>
   </div>
   <!-- Bedrag invoer -->
@@ -2786,10 +2789,9 @@ function getInkomstTegelBedrag(tegel, rek) {
   if (tegel.type === 'extra_inkomsten') {
     return loadOverige(rek, 'inkomsten_extra_' + tegel.key).reduce((s, o) => s + (parseBedrag(o.bedrag) || 0), 0);
   }
-  // Check if key exists in schema for this rek
-  const schemaItem = SCHEMA[rek].inkomsten.find(i => i.key === tegel.key);
-  if (schemaItem) return parseBedrag(getValue(rek, 'inkomsten', tegel.key, schemaItem.persist)) || 0;
-  return 0; // key niet in schema van deze rek — toon tegel maar sla niet op
+  // Altijd opslaan, schema of niet — gebruik schema persist als beschikbaar
+  const schemaItem = SCHEMA[rek] && SCHEMA[rek].inkomsten ? SCHEMA[rek].inkomsten.find(i => i.key === tegel.key) : null;
+  return parseBedrag(getValue(rek, 'inkomsten', tegel.key, schemaItem ? schemaItem.persist : false)) || 0;
 }
 
 function toggleQuickInkomsten() {
@@ -2843,16 +2845,20 @@ function renderQuickIncomeList(filter) {
   if (!container) return;
   const rek = _quickIncomeRek;
   const q = (filter || '').toLowerCase().trim();
-  const gefilterd = q ? ALLE_INKOMSTEN_TEGELS.filter(t => t.label.toLowerCase().includes(q)) : ALLE_INKOMSTEN_TEGELS;
 
-  if (!gefilterd.length) {
+  if (noResults) noResults.style.display = 'none';
+
+  const toRenderInk = q ? ALLE_INKOMSTEN_TEGELS.filter(t => t.label.toLowerCase().includes(q)) : ALLE_INKOMSTEN_TEGELS;
+
+  if (q && toRenderInk.length === 0) {
     container.innerHTML = '';
+    container.style.minHeight = _quickInkFullHeight ? _quickInkFullHeight + 'px' : '';
     if (noResults) noResults.style.display = 'block';
     return;
   }
   if (noResults) noResults.style.display = 'none';
 
-  container.innerHTML = gefilterd.map(tegel => {
+  container.innerHTML = toRenderInk.map(tegel => {
     const curAmt = getInkomstTegelBedrag(tegel, rek);
     const hasVal = curAmt > 0;
     const { emoji, text } = extractEmoji(tegel.label);
@@ -2866,11 +2872,20 @@ function renderQuickIncomeList(filter) {
       ${amtHtml}
     </button>`;
   }).join('');
+
+  if (!q) {
+    requestAnimationFrame(() => {
+      _quickInkFullHeight = container.scrollHeight;
+      container.style.minHeight = '';
+    });
+  } else {
+    container.style.minHeight = _quickInkFullHeight ? _quickInkFullHeight + 'px' : '';
+  }
 }
 
 function filterQuickIncomeList(val) {
-  const scroll = document.getElementById('quick-income-scroll');
   renderQuickIncomeList(val);
+  const scroll = document.getElementById('quick-income-scroll');
   if (scroll) scroll.scrollTop = 0;
 }
 
@@ -3347,8 +3362,8 @@ function kopieerVasteItemsVanVorigeMaand() {
     );
     if (hasData) {
       pm = tm; py = ty; prevData = tryData;
-      const prevVVKey = sessionKey('vastvar_' + ty + '-' + String(tm+1).padStart(2,'0'));
-      try { prevVV = JSON.parse(localStorage.getItem(prevVVKey) || '{}'); } catch {}
+      // vastvar is globaal opgeslagen, niet per maand
+      prevVV = loadVastVar();
       break;
     }
   }
@@ -3530,7 +3545,7 @@ function renderSectionCard(containerId, rek, type) {
           <button class="overige-del-btn" onclick="removeOverigeItem('${rek}','${listKey}',${idx})">🗑</button>
         </div>`).join('');
 
-      tiles.push(`<div class="rtile rtile-has" onclick="toggleTilePanel('${panelId}')" id="tile-extra-${rek}-${item.key}">
+      tiles.push(`<div class="rtile rtile-has" onclick="toggleTilePanel('${panelId}')" id="tile-extra-${rek}-${item.key}" style="border-color:var(--green-mid);background:var(--green-light)">
         <div class="rtile-icon">${emoji}</div>
         <div class="rtile-label">${text}</div>
         ${total > 0 ? `<div class="rtile-amt" style="color:var(--green)">${fmt(total)}</div>` : ''}
@@ -3614,10 +3629,10 @@ function renderSectionCard(containerId, rek, type) {
           <button class="overige-del-btn" onclick="removeOverigeItem('${rek}','${type}',${idx})">🗑</button>
         </div>`).join('');
 
-      tiles.push(`<div class="rtile rtile-has" onclick="toggleTilePanel('${panelId}')" id="tile-ov-${rek}-${type}" style="border-color:var(--amber);background:var(--amber-light)">
+      tiles.push(`<div class="rtile rtile-has" onclick="toggleTilePanel('${panelId}')" id="tile-ov-${rek}-${type}" style="border-color:var(--rose-mid);background:var(--rose-light)">
         <div class="rtile-icon">💬</div>
         <div class="rtile-label">Overige</div>
-        ${total > 0 ? `<div class="rtile-amt" style="color:var(--amber)">${fmt(total)}</div>` : ''}
+        ${total > 0 ? `<div class="rtile-amt" style="color:var(--rose)">${fmt(total)}</div>` : ''}
         <div class="rtile-chev" id="${panelId}-chevron">⌄</div>
       </div>`);
 
@@ -3655,16 +3670,75 @@ function renderSectionCard(containerId, rek, type) {
         </div>
       </div>
       <div style="padding:0 14px 12px;display:flex;gap:8px">
-        <input type="text" inputmode="decimal" id="${panelId}-inp" placeholder="Bedrag aanpassen"
+        <input type="text" inputmode="decimal" id="${panelId}-inp" placeholder="Huidig: ${fmt(v)} — voer nieuw bedrag in"
           style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text);-webkit-appearance:none"
-          value="${val}"
-          onchange="setValue('${rek}','${type}','${item.key}',this.value);renderAll();recalcAll()"
-          oninput="setValue('${rek}','${type}','${item.key}',this.value)">
+          onchange="if(this.value)setValue('${rek}','${type}','${item.key}',this.value);renderAll();recalcAll()"
+          oninput="if(this.value)setValue('${rek}','${type}','${item.key}',this.value)">
         <button onclick="addValueFromTile('${rek}','${type}','${item.key}','${panelId}')"
           style="padding:9px 14px;background:${posColor};color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0">＋</button>
       </div>
     </div>`);
   });
+
+  // Cross-rek items:
+  // Voeg ook cross-rek items toe (items ingevoerd via PAW maar niet in SCHEMA van deze rek)
+  if (isInk) {
+    ALLE_INKOMSTEN_TEGELS.forEach(tegel => {
+      if (tegel.type === 'extra_inkomsten') return;
+      const inSchema = SCHEMA[rek] && SCHEMA[rek].inkomsten && SCHEMA[rek].inkomsten.some(i => i.key === tegel.key);
+      if (inSchema) return; // al gerenderd via schema loop
+      const v = parseBedrag(getValue(rek, 'inkomsten', tegel.key, false)) || 0;
+      if (v === 0) return;
+      const {emoji, text} = extractEmoji(tegel.label);
+      const panelId = 'tile-panel-' + rek + '-inkomsten-' + tegel.key;
+      tiles.push('<div class="rtile rtile-has" onclick="toggleTilePanel(\'' + panelId + '\')" style="border-color:var(--green-mid);background:var(--green-light)">'
+        + '<div class="rtile-icon">' + emoji + '</div>'
+        + '<div class="rtile-label">' + text + '</div>'
+        + '<div class="rtile-amt" style="color:var(--green)">' + fmt(v) + '</div>'
+        + '<div class="rtile-chev" id="' + panelId + '-chevron">⌄</div>'
+        + '</div>');
+      panels.push('<div class="tile-panel" id="' + panelId + '" style="display:none">'
+        + '<div style="padding:10px 14px;display:flex;gap:8px;align-items:center">'
+          + '<span style="font-size:13px;color:var(--text-2)">Huidig: <strong style="color:var(--green)">' + fmt(v) + '</strong></span>'
+          + '<button class="overige-del-btn" style="margin-left:auto" onclick="setValue(\'' + rek + '\',\'inkomsten\',\'' + tegel.key + '\',\'0\');closeTilePanel(\'' + panelId + '\');renderAll();recalcAll()">🗑</button>'
+        + '</div>'
+        + '<div style="padding:0 14px 12px;display:flex;gap:8px">'
+          + '<input type="text" inputmode="decimal" id="' + panelId + '-inp" placeholder="Huidig: ' + fmt(v) + '" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text);-webkit-appearance:none">'
+          + '<button onclick="addValueFromTileKey(\'' + rek + '\',\'inkomsten\',\'' + tegel.key + '\',\'' + panelId + '\')" style="padding:9px 14px;background:var(--green);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0">＋</button>'
+        + '</div>'
+        + '</div>');
+      totaal += v;
+    });
+  } else {
+    // Cross-rek uitgaven: items in ALLE_TEGELS die niet in SCHEMA[rek].uitgaven staan
+    ALLE_TEGELS.forEach(tegel => {
+      if (tegel.type === 'overige' || tegel.type === 'abonnement') return;
+      const sk = tegel.schemaKey || tegel.key; // gebruik schemaKey voor opslag
+      const inSchema = SCHEMA[rek] && SCHEMA[rek].uitgaven && SCHEMA[rek].uitgaven.some(i => (i.key === sk || i.key === tegel.key) && !i.abonnementen && !i.overige);
+      if (inSchema) return; // al gerenderd via schema loop
+      const v = parseBedrag(getValue(rek, 'uitgaven', sk, false)) || 0; // lees via schemaKey
+      if (v === 0) return;
+      const {emoji, text} = extractEmoji(tegel.label);
+      const panelId = 'tile-panel-' + rek + '-uitgaven-xrek-' + sk;
+      tiles.push('<div class="rtile rtile-has" onclick="toggleTilePanel(\'' + panelId + '\')" style="border-color:var(--rose-mid);background:var(--rose-light)">'
+        + '<div class="rtile-icon">' + emoji + '</div>'
+        + '<div class="rtile-label">' + text + '</div>'
+        + '<div class="rtile-amt" style="color:var(--rose)">' + fmt(v) + '</div>'
+        + '<div class="rtile-chev" id="' + panelId + '-chevron">⌄</div>'
+        + '</div>');
+      panels.push('<div class="tile-panel" id="' + panelId + '" style="display:none">'
+        + '<div style="padding:10px 14px;display:flex;gap:8px;align-items:center">'
+          + '<span style="font-size:13px;color:var(--text-2)">Huidig: <strong style="color:var(--rose)">' + fmt(v) + '</strong></span>'
+          + '<button class="overige-del-btn" style="margin-left:auto" onclick="setValue(\'' + rek + '\',\'uitgaven\',\'' + sk + '\',\'0\');closeTilePanel(\'' + panelId + '\');renderAll();recalcAll()">🗑</button>'
+        + '</div>'
+        + '<div style="padding:0 14px 12px;display:flex;gap:8px">'
+          + '<input type="text" inputmode="decimal" id="' + panelId + '-inp" placeholder="Huidig: ' + fmt(v) + '" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text);-webkit-appearance:none">'
+          + '<button onclick="addValueFromTileKey(\'' + rek + '\',\'uitgaven\',\'' + sk + '\',\'' + panelId + '\')" style="padding:9px 14px;background:var(--rose);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0">＋</button>'
+        + '</div>'
+        + '</div>');
+      totaal += v;
+    });
+  }
 
   const title = isInk ? 'Inkomsten' : 'Uitgaven';
   const hasContent = tiles.length > 0;
@@ -3715,6 +3789,10 @@ function addValueFromTile(rek, type, key, panelId) {
   inp.value = '';
   closeTilePanel(panelId);
   renderAll(); recalcAll();
+}
+// Zelfde als addValueFromTile maar met expliciete sleutel (voor cross-rek items met schemaKey)
+function addValueFromTileKey(rek, type, key, panelId) {
+  addValueFromTile(rek, type, key, panelId);
 }
 function addTileNotitie(rek, listKey) {
   // Bepaal panelId op basis van listKey (extra inkomsten)
@@ -3953,6 +4031,17 @@ function calcCore() {
     }
   });
 
+  // Cross-rek inkomsten: items ingevoerd via PAW maar niet in SCHEMA van die rek
+  ALLE_INKOMSTEN_TEGELS.forEach(t => {
+    if (t.type === 'extra_inkomsten') return;
+    if (!SCHEMA.man.inkomsten.some(i => i.key === t.key))
+      davidIn += parseBedrag(getValue('man', 'inkomsten', t.key, false)) || 0;
+    if (!SCHEMA.vrouw.inkomsten.some(i => i.key === t.key))
+      laurenIn += parseBedrag(getValue('vrouw', 'inkomsten', t.key, false)) || 0;
+    if (!SCHEMA.gemeenschappelijk.inkomsten.some(i => i.key === t.key))
+      gemExtraIn += parseBedrag(getValue('gemeenschappelijk', 'inkomsten', t.key, false)) || 0;
+  });
+
   // Overschrijvingen tussen rekeningen
   const transferManVrouw = getTransfer('man', 'vrouw');
   const transferVrouwMan = getTransfer('vrouw', 'man');
@@ -3996,6 +4085,18 @@ function calcCore() {
     }
   });
   gemUit += transferGemMan + transferGemVrouw;
+
+  // Cross-rek uitgaven: items ingevoerd via PAW maar niet in SCHEMA van die rek
+  ALLE_TEGELS.forEach(t => {
+    if (t.type === 'overige' || t.type === 'abonnement') return;
+    const sk = t.schemaKey || t.key;
+    if (!SCHEMA.man.uitgaven.some(i => i.key === sk || i.key === t.key))
+      davidUit += parseBedrag(getValue('man', 'uitgaven', sk, false)) || 0;
+    if (!SCHEMA.vrouw.uitgaven.some(i => i.key === sk || i.key === t.key))
+      laurenUit += parseBedrag(getValue('vrouw', 'uitgaven', sk, false)) || 0;
+    if (!SCHEMA.gemeenschappelijk.uitgaven.some(i => i.key === sk || i.key === t.key))
+      gemUit += parseBedrag(getValue('gemeenschappelijk', 'uitgaven', sk, false)) || 0;
+  });
 
   // Beschikbaar (voor sparen)
   const davidBeschikbaar  = davidIn  - bijDavid  - davidUit;
@@ -4626,18 +4727,16 @@ function renderRapportContent(tab) {
     html += `</div>`;
 
     // Donut totaal
-    const segments = [
-      { val: c.davidUit + c.laurenUit, color: 'var(--rose)', label: 'Persoonlijke uitg.' },
-      { val: totalBij,                  color: 'var(--blue)',       label: 'Gem. rekening' },
-      { val: totalSpaar,                color: 'var(--teal)',  label: 'Sparen' },
-      { val: Math.max(0, totalSaldo),   color: 'var(--green)', label: 'Vrij' },
+    const segmentsTotaal = [
+      { val: totalIn,                   color: '#27AE60', label: 'Totaal inkomsten' },
+      { val: c.davidUit + c.laurenUit,  color: '#E74C3C', label: 'Persoonlijke uitg.' },
+      { val: totalBij,                  color: '#3498DB', label: 'Gem. rekening' },
+      { val: totalSpaar,                color: '#F1C40F', label: 'Sparen' },
+      { val: Math.max(0, totalSaldo),   color: '#9B59B6', label: 'Vrij saldo' },
     ].filter(s => s.val > 0);
-    const donutSVG = buildDonutSVG(segments, 110);
-    const legendItems = [
-      { color: 'var(--green)', label: 'Totaal inkomsten', val: totalIn },
-      { color: 'var(--rose)', label: 'Totaal uitgaven',  val: totalUit },
-      { color: 'var(--teal)',  label: 'Totaal sparen',    val: totalSpaar },
-    ].map(i => `<div class="rdl-item"><div class="rdl-dot" style="background:${i.color}"></div><span class="rdl-label">${i.label}</span><span class="rdl-val">${fmt(i.val)}</span></div>`).join('');
+    const donutSVG = buildDonutSVG(segmentsTotaal, 110);
+    const legendItems = segmentsTotaal
+      .map(i => `<div class="rdl-item"><div class="rdl-dot" style="background:${i.color}"></div><span class="rdl-label">${i.label}</span><span class="rdl-val">${fmt(i.val)}</span></div>`).join('');
     html += `<div class="rapport-grafiek-wrap">
       <div class="rapport-grafiek-title">Verdeling gezin — ${MAANDEN[currentMonth]}</div>
       <div class="rapport-donut-row">${donutSVG}<div class="rapport-donut-legend">${legendItems}</div></div>
@@ -4849,12 +4948,24 @@ function deleteSpaardoel(i) {
 
 // ===== RENDER ALL =====
 function renderAll() {
+  // Bewaar welke tile-panels open zijn zodat ze na re-render heropend worden
+  const openPanels = new Set();
+  document.querySelectorAll('.tile-panel').forEach(p => {
+    if (p.style.display !== 'none' && p.id) openPanels.add(p.id);
+  });
+
   renderSectionCard('man-inkomsten-card',  'man',              'inkomsten');
   renderSectionCard('man-uitgaven-card',   'man',              'uitgaven');
   renderSectionCard('vrouw-inkomsten-card','vrouw',            'inkomsten');
   renderSectionCard('vrouw-uitgaven-card', 'vrouw',            'uitgaven');
   renderSectionCard('gem-extra-inkomsten-card', 'gemeenschappelijk', 'inkomsten');
   renderSectionCard('gem-uitgaven-card',   'gemeenschappelijk','uitgaven');
+
+  // Heropen panels die open waren
+  openPanels.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'block'; updateChevron(id, true); }
+  });
   ['gem-inkomsten-card','gem-uitgaven-card'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('is-gem');
@@ -4877,6 +4988,7 @@ if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').
 
 
 // ===== RAPPORT GRAFIEKEN =====
+const DONUT_COLORS = ['#E74C3C','#3498DB','#2ECC71','#9B59B6','#F39C12','#1ABC9C','#E67E22','#34495E','#16A085','#C0392B','#2980B9','#8E44AD'];
 function buildDonutSVG(segments, size) {
   // segments: [{val, color, label}], size: px
   const r = size / 2 - 10; const cx = size / 2; const cy = size / 2;
@@ -4899,20 +5011,17 @@ function buildDonutSVG(segments, size) {
 
 function rapportGrafiekPersoon(rek, inkomsten, bijdrage, uitgaven, sparen, saldo, naam) {
   // Donut: verdeling van inkomsten
-  const segments = [
-    { val: bijdrage, color: 'var(--blue)',    label: 'Bijdrage' },
-    { val: uitgaven, color: 'var(--rose)',      label: 'Uitgaven' },
-    { val: sparen,   color: 'var(--rose)',             label: 'Sparen'   },
-    { val: Math.max(0, saldo), color: '#A8C5F0', label: 'Vrij'     },
+  const segmentsPerson = [
+    { val: inkomsten,          color: '#27AE60', label: 'Inkomsten' },
+    { val: bijdrage,           color: '#3498DB', label: 'Bijdrage gem.' },
+    { val: uitgaven,           color: '#E74C3C', label: 'Uitgaven' },
+    { val: sparen,             color: '#F1C40F', label: 'Sparen' },
+    { val: Math.max(0, saldo), color: '#9B59B6', label: 'Vrij saldo' },
   ].filter(s => s.val > 0);
 
-  const donutSVG = buildDonutSVG(segments, 110);
-  const legendItems = [
-    { color: 'var(--green)', label: 'Inkomsten', val: inkomsten },
-    { color: 'var(--blue)', label: 'Gem. rekening', val: bijdrage },
-    { color: 'var(--rose)', label: 'Uitgaven', val: uitgaven },
-    { color: 'var(--rose)', label: 'Sparen', val: sparen },
-  ].map(i => `<div class="rdl-item"><div class="rdl-dot" style="background:${i.color}"></div><span class="rdl-label">${i.label}</span><span class="rdl-val">${fmt(i.val)}</span></div>`).join('');
+  const donutSVG = buildDonutSVG(segmentsPerson, 110);
+  const legendItems = segmentsPerson
+    .map(i => `<div class="rdl-item"><div class="rdl-dot" style="background:${i.color}"></div><span class="rdl-label">${i.label}</span><span class="rdl-val">${fmt(i.val)}</span></div>`).join('');
 
   // Mini bar chart dit jaar
   const { allData, maxVal } = buildYearData(rek);
@@ -4943,16 +5052,15 @@ function rapportGrafiekPersoon(rek, inkomsten, bijdrage, uitgaven, sparen, saldo
 }
 
 function rapportGrafiekGem(gemIn, gemUit, gemSaldo) {
-  const segments = [
-    { val: gemUit, color: 'var(--rose)', label: 'Uitgaven' },
-    { val: Math.max(0, gemSaldo), color: 'var(--rose)', label: 'Overschot' },
+  const segmentsGem = [
+    { val: gemIn,                 color: '#27AE60', label: 'Ontvangen bijdragen' },
+    { val: gemUit,                color: '#E74C3C', label: 'Uitgaven' },
+    { val: Math.max(0, gemSaldo), color: '#9B59B6', label: 'Overschot' },
+    { val: gemSaldo < 0 ? Math.abs(gemSaldo) : 0, color: '#E67E22', label: 'Tekort' },
   ].filter(s => s.val > 0);
-  const donutSVG = buildDonutSVG(segments, 110);
-  const legendItems = [
-    { color: 'var(--green)',   label: 'Ontvangen bijdragen', val: gemIn  },
-    { color: 'var(--rose)',   label: 'Uitgaven',            val: gemUit },
-    { color: gemSaldo >= 0 ? 'var(--green)' : 'var(--rose)', label: gemSaldo >= 0 ? 'Overschot' : 'Tekort', val: Math.abs(gemSaldo) },
-  ].map(i => `<div class="rdl-item"><div class="rdl-dot" style="background:${i.color}"></div><span class="rdl-label">${i.label}</span><span class="rdl-val">${fmt(i.val)}</span></div>`).join('');
+  const donutSVG = buildDonutSVG(segmentsGem, 110);
+  const legendItems = segmentsGem
+    .map(i => `<div class="rdl-item"><div class="rdl-dot" style="background:${i.color}"></div><span class="rdl-label">${i.label}</span><span class="rdl-val">${fmt(i.val)}</span></div>`).join('');
 
   // Mini gem bar: bijdragen vs uitgaven per maand
   const gemBars = (() => {
@@ -5233,9 +5341,7 @@ function openQuickInvoer() {
   // Scroll categorie list naar boven
   const scroll = document.getElementById('quick-cat-scroll');
   if (scroll) { scroll.scrollTop = 0; }
-  // Zet min-height op de categorielijst zodat sheet niet inkrimpt bij zoeken
-  const catList = document.getElementById('quick-cat-list');
-  if (catList) { setTimeout(() => { catList.style.minHeight = catList.scrollHeight + 'px'; }, 200); }
+  // Laat de tegels hun normale grootte behouden bij zoeken (geen min-height nodig)
   // Spring automatisch naar de huidige actieve tab
   const activeTab = TAB_ORDER[currentTabIdx];
   if (activeTab === 'man' || activeTab === 'vrouw' || activeTab === 'gemeenschappelijk') {
@@ -5355,24 +5461,34 @@ function getAllQuickItems(rek) {
   return ALLE_TEGELS;
 }
 
+// Hoogte van de quick-cat-list bij volledige weergave
+let _quickCatFullHeight = 0;
+let _quickInkFullHeight = 0;
+
 // Render tegels
 function renderQuickCatList(filter) {
   const container = document.getElementById('quick-cat-list');
+  const scroll = document.getElementById('quick-cat-scroll');
   const noResults = document.getElementById('quick-no-results');
   if (!container) return;
   const rek = _quickRek;
   const alleItems = getAllQuickItems(rek);
   const q = (filter || '').toLowerCase().trim();
-  const gefilterd = q ? alleItems.filter(i => i.label.toLowerCase().includes(q)) : alleItems;
 
-  if (!gefilterd.length) {
+  if (noResults) noResults.style.display = 'none';
+
+  const toRender = q ? alleItems.filter(i => i.label.toLowerCase().includes(q)) : alleItems;
+
+  if (q && toRender.length === 0) {
+    // Bewaar hoogte, toon lege container met min-height
     container.innerHTML = '';
+    container.style.minHeight = _quickCatFullHeight ? _quickCatFullHeight + 'px' : '';
     if (noResults) noResults.style.display = 'block';
     return;
   }
   if (noResults) noResults.style.display = 'none';
 
-  container.innerHTML = gefilterd.map(item => {
+  container.innerHTML = toRender.map(item => {
     const curAmt = getTegelBedrag(item, rek);
     const hasVal = curAmt > 0;
     const { emoji, text } = extractEmoji(item.label);
@@ -5386,11 +5502,22 @@ function renderQuickCatList(filter) {
       ${amtHtml}
     </button>`;
   }).join('');
+
+  // Bewaar volledige hoogte (alleen als er geen filter actief is)
+  if (!q) {
+    requestAnimationFrame(() => {
+      _quickCatFullHeight = container.scrollHeight;
+      container.style.minHeight = '';
+    });
+  } else {
+    // Houd de container op minimaal de vorige volledige hoogte
+    container.style.minHeight = _quickCatFullHeight ? _quickCatFullHeight + 'px' : '';
+  }
 }
 
 function filterQuickCatList(val) {
-  const scroll = document.getElementById('quick-cat-scroll');
   renderQuickCatList(val);
+  const scroll = document.getElementById('quick-cat-scroll');
   if (scroll) scroll.scrollTop = 0;
 }
 
@@ -5907,6 +6034,21 @@ function renderJaarTab() {
           tUit += v;
         }
       });
+      // Cross-rek inkomsten (niet in SCHEMA van deze rek)
+      ALLE_INKOMSTEN_TEGELS.forEach(t => {
+        if (t.type === 'extra_inkomsten') return;
+        if (!SCHEMA[r].inkomsten.some(i => i.key === t.key))
+          tIn += parseBedrag(data[r]?.inkomsten?.[t.key]) || 0;
+      });
+      // Cross-rek uitgaven (niet in SCHEMA van deze rek)
+      ALLE_TEGELS.forEach(t => {
+        if (t.type === 'overige' || t.type === 'abonnement') return;
+        const sk = t.schemaKey || t.key;
+        if (!SCHEMA[r].uitgaven.some(i => i.key === sk || i.key === t.key)) {
+          let v = parseBedrag(data[r]?.uitgaven?.[sk]) || 0;
+          tUit += v;
+        }
+      });
       // Bijdrage gem. rekening telt als uitgave
       tUit += r === 'man' ? bijDavid : bijLauren;
     });
@@ -5921,6 +6063,14 @@ function renderJaarTab() {
     let davidIn = 0, laurenIn = 0, davidUit2 = 0, laurenUit2 = 0;
     SCHEMA.man.inkomsten.forEach(i => { davidIn += parseBedrag(data.man?.inkomsten?.[i.key]) || 0; });
     SCHEMA.vrouw.inkomsten.forEach(i => { laurenIn += parseBedrag(data.vrouw?.inkomsten?.[i.key]) || 0; });
+    // Cross-rek inkomsten voor spaar-berekening
+    ALLE_INKOMSTEN_TEGELS.forEach(t => {
+      if (t.type === 'extra_inkomsten') return;
+      if (!SCHEMA.man.inkomsten.some(i => i.key === t.key))
+        davidIn += parseBedrag(data.man?.inkomsten?.[t.key]) || 0;
+      if (!SCHEMA.vrouw.inkomsten.some(i => i.key === t.key))
+        laurenIn += parseBedrag(data.vrouw?.inkomsten?.[t.key]) || 0;
+    });
     // Ontvangen transfers tellen als inkomsten
     davidIn  += transferVrouwMan + transferGemMan;
     laurenIn += transferManVrouw + transferGemVrouw;
@@ -5937,6 +6087,13 @@ function renderJaarTab() {
         davidUit2 += parseBedrag(data.man?.uitgaven?.[i.key]) || 0;
       }
     });
+    // Cross-rek uitgaven David
+    ALLE_TEGELS.forEach(t => {
+      if (t.type === 'overige' || t.type === 'abonnement') return;
+      const sk = t.schemaKey || t.key;
+      if (!SCHEMA.man.uitgaven.some(i => i.key === sk || i.key === t.key))
+        davidUit2 += parseBedrag(data.man?.uitgaven?.[sk]) || 0;
+    });
     // Transfer David→Lauren telt als uitgave voor David
     davidUit2 += transferManVrouw;
     SCHEMA.vrouw.uitgaven.forEach(i => {
@@ -5951,6 +6108,13 @@ function renderJaarTab() {
       } else {
         laurenUit2 += parseBedrag(data.vrouw?.uitgaven?.[i.key]) || 0;
       }
+    });
+    // Cross-rek uitgaven Lauren
+    ALLE_TEGELS.forEach(t => {
+      if (t.type === 'overige' || t.type === 'abonnement') return;
+      const sk = t.schemaKey || t.key;
+      if (!SCHEMA.vrouw.uitgaven.some(i => i.key === sk || i.key === t.key))
+        laurenUit2 += parseBedrag(data.vrouw?.uitgaven?.[sk]) || 0;
     });
     // Transfer Lauren→David telt als uitgave voor Lauren
     laurenUit2 += transferVrouwMan;
@@ -6470,7 +6634,8 @@ function bevestigResetAlles() {
 
 // ===== OVERSCHRIJVINGEN ALS TEGELS =====
 function renderTransferTiles(rek, c) {
-  const containerId = rek + '-transfer-tiles';
+  const rekShort = rek === 'gemeenschappelijk' ? 'gem' : rek;
+  const containerId = rekShort + '-transfer-tiles';
   const container = document.getElementById(containerId);
   if (!container) return;
 
