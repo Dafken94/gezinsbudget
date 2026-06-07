@@ -98,6 +98,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   gap: 6px;
   flex-shrink: 0;
   z-index: 10;
+  position: relative;
 }
 
 .app-header h1 {
@@ -770,7 +771,37 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 .overige-block { border-bottom: 1px solid var(--border); }
 .overige-block:last-child { border-bottom: none; }
 .overige-hdr-row { border-bottom: none !important; }
-.overige-total-amt { font-family: 'Playfair Display', 'DM Serif Display', serif; font-size: 17px; color: var(--text); }
+.overige-total-amt {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  width: 100px;
+  min-width: 100px;
+  text-align: right;
+  padding: 10px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  pointer-events: none;
+}
+/* Pijltje bij abonnementen — absoluut zodat het totaalbalkje niet verschuift */
+.abonnement-chevron {
+  position: absolute;
+  right: 18px;
+  font-size: 18px;
+  color: var(--muted);
+  line-height: 1;
+  transition: transform 0.2s;
+  pointer-events: none;
+}
+.budget-row.overige-hdr-row { position: relative; }
+.overige-total-amt:empty::after {
+  content: '0';
+  color: var(--muted);
+  opacity: 0.5;
+}
 .overige-sub-list { padding: 0 18px 4px; }
 .overige-sub-row {
   display: flex;
@@ -1254,11 +1285,21 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 [data-theme="dark"] .row-input,
 [data-theme="dark"] .overige-notitie-input,
 [data-theme="dark"] .overige-bedrag-input,
+[data-theme="dark"] .overige-total-amt,
 [data-theme="dark"] .spaar-input,
 [data-theme="dark"] .bijdrage-row-input,
 [data-theme="dark"] .quick-cat-input,
+[data-theme="dark"] #quick-search,
+[data-theme="dark"] #quick-cat-amount,
+[data-theme="dark"] #quick-notitie,
+[data-theme="dark"] #quick-income-search,
+[data-theme="dark"] #quick-income-amount,
+[data-theme="dark"] #quick-income-notitie,
+[data-theme="dark"] #quick-transfer-amount,
 [data-theme="dark"] .quick-label-input,
 [data-theme="dark"] .quick-amount { background: #0D1117; color: var(--text); border-color: #21262D; }
+[data-theme="dark"] .quick-tile { background: var(--card); border-color: var(--border); }
+[data-theme="dark"] .quick-tile.has-value { border-color: var(--accent); background: var(--accent-light); }
 [data-theme="dark"] .rapport-btn {
   background: linear-gradient(135deg, #C0407A 0%, #7B5EA7 100%) !important;
   box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
@@ -1403,39 +1444,44 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 }
 .quick-backdrop.open { display: block; }
 
-/* ===== QUICK CAT ROWS ===== */
-.quick-cat-row {
+/* ===== QUICK INVOER TEGELS ===== */
+.quick-tile {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 0 4px;
-  min-height: 52px;
-  border-bottom: 1px solid var(--border);
-  gap: 10px;
-}
-.quick-cat-row:last-child { border-bottom: none; }
-.quick-cat-label {
-  flex: 1;
-  font-size: 15px;
-  color: var(--text);
-}
-.quick-cat-sub {
-  font-size: 10px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-.quick-cat-input {
-  width: 100px;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 6px 8px;
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 9px 10px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 16px;
-  text-align: right;
-  background: var(--bg);
-  color: var(--text);
-  -webkit-appearance: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  text-align: center;
+  min-height: 72px;
+  position: relative;
+  user-select: none;
 }
-.quick-cat-input:focus { outline: none; border-color: var(--accent); }
+.quick-tile:active { transform: scale(0.95); background: var(--accent-light); }
+.quick-tile.has-value { border-color: var(--accent); background: var(--accent-light); }
+.quick-tile-icon { font-size: 22px; line-height: 1.1; }
+.quick-tile-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.2;
+  word-break: break-word;
+  max-width: 100%;
+}
+.quick-tile-amt {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: 1px;
+}
+/* Zoekbalk focus */
+#quick-search:focus { outline: none; border-color: var(--accent); }
 .quick-cat-save-flash {
   font-size: 12px;
   color: var(--income);
@@ -1953,6 +1999,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 
   <div class="app-header">
     <h1>💰 Gezinsbudget</h1>
+    <div id="header-month-title" style="position:absolute;left:50%;transform:translateX(-50%);font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;pointer-events:none"></div>
     <button onclick="openDeel()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:0 8px;height:32px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent;flex-shrink:0" aria-label="Delen">🔗</button>
     <button class="darkmode-btn" onclick="toggleDarkMode()" id="darkmode-btn" style="height:32px;padding:0 8px;font-size:15px;" aria-label="Dark mode">🌙</button>
     <button class="lock-btn" id="lock-btn" onclick="toggleLockMaand()" aria-label="Maand vergrendelen" title="Maand vergrendelen/ontgrendelen">🔓</button>
@@ -2120,7 +2167,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
         <div style="display:none" id="man-saldo-card"><span id="man-saldo"></span></div>
         <div id="alert-man" class="alert"></div>
         <div id="man-inkomsten-card" class="section-card"></div>
-        <div id="man-bijdrage-card" class="bijdrage-section-card" style="background:#EEF4FC;border-color:rgba(26,100,200,0.3)">
+        <div id="man-bijdrage-card" class="bijdrage-section-card" style="background:#EEF4FC;border-color:rgba(26,100,200,0.3);display:none">
           <div class="bijdrage-section-hdr" style="color:#1A64C8;border-bottom-color:rgba(26,100,200,0.2)">
             <span>💸 Gemeenschappelijke rekening</span>
             <span class="total" id="total-man-bijdrage" style="color:#1A64C8">€0</span>
@@ -2130,21 +2177,15 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
               Overschrijving gem. rekening
               <span class="row-tag" style="background:#D8E8F8;color:#1A64C8">Vast</span>
             </span>
-            <button class="row-plus-btn" onclick="toggleTransferAdd('man-bijdrage-add')" style="color:#1A64C8;border-color:rgba(26,100,200,0.3)">＋</button>
+            <button class="overige-del-btn" onclick="verwijderTransfer('bijdrage','man',null)" title="Verwijder" style="margin-right:4px">🗑</button>
             <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-man-bijdrage" style="color:#1A64C8;border-color:rgba(26,100,200,0.3)"
               placeholder="0" inputmode="decimal"
               onchange="setBijdrage('man', this.value)"
               oninput="setBijdrage('man', this.value)">
           </div>
-          <div class="row-add-inline" id="man-bijdrage-add" style="background:#EEF4FC">
-            <span class="row-add-inline-lbl" style="color:#1A64C8">＋ voeg toe</span>
-            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="man-bijdrage-add-input">
-            <button class="row-add-cancel-btn" onclick="closeTransferAdd('man-bijdrage-add')">✕</button>
-            <button class="row-add-confirm-btn" style="background:#1A64C8" onclick="confirmTransferAdd('bijdrage','man',null,'man-bijdrage-add')">✓</button>
-          </div>
         </div>
         <!-- Overschrijving David → Lauren -->
-        <div class="bijdrage-section-card" style="background:linear-gradient(145deg,#FCE8F2,#FAE0EE);border-color:rgba(192,64,122,0.3)">
+        <div id="man-naar-vrouw-card" class="bijdrage-section-card" style="background:linear-gradient(145deg,#FCE8F2,#FAE0EE);border-color:rgba(192,64,122,0.3);display:none">
           <div class="bijdrage-section-hdr" style="color:var(--vrouw);border-bottom-color:rgba(192,64,122,0.2)">
             <span>💸 Overschrijving naar Lauren</span>
             <span class="total" id="total-man-naar-vrouw" style="color:var(--vrouw)">€0</span>
@@ -2154,17 +2195,11 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
               David → Lauren
               <span class="row-tag" style="background:var(--vrouw-light);color:var(--vrouw)">Uitgave / Inkomst Lauren</span>
             </span>
-            <button class="row-plus-btn" onclick="toggleTransferAdd('man-vrouw-add')" style="color:var(--vrouw);border-color:rgba(192,64,122,0.3)">＋</button>
+            <button class="overige-del-btn" onclick="verwijderTransfer('transfer','man','vrouw')" title="Verwijder" style="margin-right:4px">🗑</button>
             <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-man-naar-vrouw" style="color:var(--vrouw);border-color:rgba(192,64,122,0.3)"
               placeholder="0"
               onchange="setTransfer('man','vrouw',this.value)"
               oninput="setTransfer('man','vrouw',this.value)">
-          </div>
-          <div class="row-add-inline" id="man-vrouw-add" style="background:var(--vrouw-light)">
-            <span class="row-add-inline-lbl" style="color:var(--vrouw)">＋ voeg toe</span>
-            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="man-vrouw-add-input">
-            <button class="row-add-cancel-btn" onclick="closeTransferAdd('man-vrouw-add')">✕</button>
-            <button class="row-add-confirm-btn" style="background:var(--vrouw)" onclick="confirmTransferAdd('transfer','man','vrouw','man-vrouw-add')">✓</button>
           </div>
         </div>
         <div id="man-uitgaven-card" class="section-card"></div>
@@ -2199,7 +2234,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
         <div style="display:none" id="vrouw-saldo-card"><span id="vrouw-saldo"></span></div>
         <div id="alert-vrouw" class="alert"></div>
         <div id="vrouw-inkomsten-card" class="section-card"></div>
-        <div id="vrouw-bijdrage-card" class="bijdrage-section-card" style="background:#EEF4FC;border-color:rgba(26,100,200,0.3)">
+        <div id="vrouw-bijdrage-card" class="bijdrage-section-card" style="background:#EEF4FC;border-color:rgba(26,100,200,0.3);display:none">
           <div class="bijdrage-section-hdr" style="color:#1A64C8;border-bottom-color:rgba(26,100,200,0.2)">
             <span>💸 Gemeenschappelijke rekening</span>
             <span class="total" id="total-vrouw-bijdrage" style="color:#1A64C8">€0</span>
@@ -2209,21 +2244,15 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
               Overschrijving gem. rekening
               <span class="row-tag" style="background:#D8E8F8;color:#1A64C8">Vast</span>
             </span>
-            <button class="row-plus-btn" onclick="toggleTransferAdd('vrouw-bijdrage-add')" style="color:#1A64C8;border-color:rgba(26,100,200,0.3)">＋</button>
+            <button class="overige-del-btn" onclick="verwijderTransfer('bijdrage','vrouw',null)" title="Verwijder" style="margin-right:4px">🗑</button>
             <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-vrouw-bijdrage" style="color:#1A64C8;border-color:rgba(26,100,200,0.3)"
               placeholder="0" inputmode="decimal"
               onchange="setBijdrage('vrouw', this.value)"
               oninput="setBijdrage('vrouw', this.value)">
           </div>
-          <div class="row-add-inline" id="vrouw-bijdrage-add" style="background:#EEF4FC">
-            <span class="row-add-inline-lbl" style="color:#1A64C8">＋ voeg toe</span>
-            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="vrouw-bijdrage-add-input">
-            <button class="row-add-cancel-btn" onclick="closeTransferAdd('vrouw-bijdrage-add')">✕</button>
-            <button class="row-add-confirm-btn" style="background:#1A64C8" onclick="confirmTransferAdd('bijdrage','vrouw',null,'vrouw-bijdrage-add')">✓</button>
-          </div>
         </div>
         <!-- Overschrijving Lauren → David -->
-        <div class="bijdrage-section-card" style="background:linear-gradient(145deg,#EDF0FC,#E8ECFA);border-color:rgba(91,111,191,0.3)">
+        <div id="vrouw-naar-man-card" class="bijdrage-section-card" style="background:linear-gradient(145deg,#EDF0FC,#E8ECFA);border-color:rgba(91,111,191,0.3);display:none">
           <div class="bijdrage-section-hdr" style="color:var(--man);border-bottom-color:rgba(91,111,191,0.2)">
             <span>💸 Overschrijving naar David</span>
             <span class="total" id="total-vrouw-naar-man" style="color:var(--man)">€0</span>
@@ -2233,17 +2262,11 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
               Lauren → David
               <span class="row-tag" style="background:var(--man-light);color:var(--man)">Uitgave / Inkomst David</span>
             </span>
-            <button class="row-plus-btn" onclick="toggleTransferAdd('vrouw-man-add')" style="color:var(--man);border-color:rgba(91,111,191,0.3)">＋</button>
+            <button class="overige-del-btn" onclick="verwijderTransfer('transfer','vrouw','man')" title="Verwijder" style="margin-right:4px">🗑</button>
             <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-vrouw-naar-man" style="color:var(--man);border-color:rgba(91,111,191,0.3)"
               placeholder="0"
               onchange="setTransfer('vrouw','man',this.value)"
               oninput="setTransfer('vrouw','man',this.value)">
-          </div>
-          <div class="row-add-inline" id="vrouw-man-add" style="background:var(--man-light)">
-            <span class="row-add-inline-lbl" style="color:var(--man)">＋ voeg toe</span>
-            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="vrouw-man-add-input">
-            <button class="row-add-cancel-btn" onclick="closeTransferAdd('vrouw-man-add')">✕</button>
-            <button class="row-add-confirm-btn" style="background:var(--man)" onclick="confirmTransferAdd('transfer','vrouw','man','vrouw-man-add')">✓</button>
           </div>
         </div>
         <div id="vrouw-uitgaven-card" class="section-card"></div>
@@ -2276,7 +2299,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
         <div id="gem-extra-inkomsten-card" class="section-card"></div>
         <div id="gem-uitgaven-card" class="section-card"></div>
         <!-- Overschrijvingen vanuit gem. rekening -->
-        <div class="bijdrage-section-card" style="background:linear-gradient(145deg,#EDF0FC,#E8ECFA);border-color:rgba(91,111,191,0.3)">
+        <div id="gem-naar-man-card" class="bijdrage-section-card" style="background:linear-gradient(145deg,#EDF0FC,#E8ECFA);border-color:rgba(91,111,191,0.3);display:none">
           <div class="bijdrage-section-hdr" style="color:var(--man);border-bottom-color:rgba(91,111,191,0.2)">
             <span>💸 Overschrijving naar David</span>
             <span class="total" id="total-gem-naar-man" style="color:var(--man)">€0</span>
@@ -2286,20 +2309,14 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
               Gem. → David
               <span class="row-tag" style="background:var(--man-light);color:var(--man)">Uitgave gem. / Inkomst David</span>
             </span>
-            <button class="row-plus-btn" onclick="toggleTransferAdd('gem-man-add')" style="color:var(--man);border-color:rgba(91,111,191,0.3)">＋</button>
+            <button class="overige-del-btn" onclick="verwijderTransfer('transfer','gem','man')" title="Verwijder" style="margin-right:4px">🗑</button>
             <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-gem-naar-man" style="color:var(--man);border-color:rgba(91,111,191,0.3)"
               placeholder="0"
               onchange="setTransfer('gem','man',this.value)"
               oninput="setTransfer('gem','man',this.value)">
           </div>
-          <div class="row-add-inline" id="gem-man-add" style="background:var(--man-light)">
-            <span class="row-add-inline-lbl" style="color:var(--man)">＋ voeg toe</span>
-            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="gem-man-add-input">
-            <button class="row-add-cancel-btn" onclick="closeTransferAdd('gem-man-add')">✕</button>
-            <button class="row-add-confirm-btn" style="background:var(--man)" onclick="confirmTransferAdd('transfer','gem','man','gem-man-add')">✓</button>
-          </div>
         </div>
-        <div class="bijdrage-section-card" style="background:linear-gradient(145deg,#FCE8F2,#FAE0EE);border-color:rgba(192,64,122,0.3)">
+        <div id="gem-naar-vrouw-card" class="bijdrage-section-card" style="background:linear-gradient(145deg,#FCE8F2,#FAE0EE);border-color:rgba(192,64,122,0.3);display:none">
           <div class="bijdrage-section-hdr" style="color:var(--vrouw);border-bottom-color:rgba(192,64,122,0.2)">
             <span>💸 Overschrijving naar Lauren</span>
             <span class="total" id="total-gem-naar-vrouw" style="color:var(--vrouw)">€0</span>
@@ -2309,17 +2326,11 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
               Gem. → Lauren
               <span class="row-tag" style="background:var(--vrouw-light);color:var(--vrouw)">Uitgave gem. / Inkomst Lauren</span>
             </span>
-            <button class="row-plus-btn" onclick="toggleTransferAdd('gem-vrouw-add')" style="color:var(--vrouw);border-color:rgba(192,64,122,0.3)">＋</button>
+            <button class="overige-del-btn" onclick="verwijderTransfer('transfer','gem','vrouw')" title="Verwijder" style="margin-right:4px">🗑</button>
             <input class="bijdrage-row-input" type="text" inputmode="decimal" id="input-gem-naar-vrouw" style="color:var(--vrouw);border-color:rgba(192,64,122,0.3)"
               placeholder="0"
               onchange="setTransfer('gem','vrouw',this.value)"
               oninput="setTransfer('gem','vrouw',this.value)">
-          </div>
-          <div class="row-add-inline" id="gem-vrouw-add" style="background:var(--vrouw-light)">
-            <span class="row-add-inline-lbl" style="color:var(--vrouw)">＋ voeg toe</span>
-            <input class="row-add-inline-input" type="text" inputmode="decimal" placeholder="€0" id="gem-vrouw-add-input">
-            <button class="row-add-cancel-btn" onclick="closeTransferAdd('gem-vrouw-add')">✕</button>
-            <button class="row-add-confirm-btn" style="background:var(--vrouw)" onclick="confirmTransferAdd('transfer','gem','vrouw','gem-vrouw-add')">✓</button>
           </div>
         </div>
       </div>
@@ -2377,37 +2388,128 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 
 </div><!-- /app-shell -->
 
-<!-- FLOATING ACTION BUTTON -->
+<!-- FLOATING ACTION BUTTONS -->
+<button class="fab" id="fab-income" onclick="toggleQuickInkomsten()" aria-label="Inkomst toevoegen" style="bottom:calc(var(--tab-total) + 84px);background:linear-gradient(135deg,#1E7A3E,#2ECC71);box-shadow:0 4px 20px rgba(30,122,62,0.45)">＋</button>
+<button class="fab" id="fab-transfer" onclick="toggleQuickTransfer()" aria-label="Overschrijving" style="bottom:calc(var(--tab-total) + 152px);background:linear-gradient(135deg,#1A64C8,#4A90E2);box-shadow:0 4px 20px rgba(26,100,200,0.45);display:none">💸</button>
 <button class="fab" id="fab" onclick="toggleQuickInvoer()" aria-label="Snelle invoer">＋</button>
 
 <!-- QUICK INVOER BACKDROP -->
 <div class="quick-backdrop" id="quick-backdrop" onclick="closeQuickInvoer()"></div>
+<!-- QUICK INKOMSTEN BACKDROP -->
+<div class="quick-backdrop" id="quick-income-backdrop" onclick="closeQuickInkomsten()"></div>
+<!-- QUICK TRANSFER BACKDROP -->
+<div class="quick-backdrop" id="quick-transfer-backdrop" onclick="closeQuickTransfer()"></div>
 
 <!-- QUICK INVOER SHEET -->
 <div class="quick-sheet" id="quick-sheet">
   <div class="quick-handle" id="quick-handle"></div>
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0">
-    <div class="quick-title" style="margin-bottom:0">✏️ Dagelijkse uitgave</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0">
+    <div class="quick-title" style="margin-bottom:0">✏️ Uitgave</div>
     <div style="display:flex;gap:6px">
       <button onclick="switchQuickTab('man')"    id="qtab-man"    style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:600;background:var(--man-light);color:var(--man);cursor:pointer;-webkit-tap-highlight-color:transparent">💙</button>
       <button onclick="switchQuickTab('vrouw')"  id="qtab-vrouw"  style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:600;background:var(--bg);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent">🌺</button>
       <button onclick="switchQuickTab('gemeenschappelijk')" id="qtab-gem" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:600;background:var(--bg);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent">🏡</button>
     </div>
   </div>
-  <!-- Tab label -->
-  <div id="quick-tab-label" style="font-size:12px;color:var(--muted);margin-bottom:10px;flex-shrink:0">Rekening: <strong id="quick-tab-name" style="color:var(--man)">David</strong></div>
-  <!-- Category list + quick amount -->
-  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch" id="quick-cat-scroll">
-    <div id="quick-cat-list"></div>
+  <!-- Zoekbalk -->
+  <div style="flex-shrink:0;margin-bottom:10px;position:relative">
+    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
+    <input type="text" id="quick-search" placeholder="Zoek uitgave…" autocomplete="off"
+      style="width:100%;padding:9px 12px 9px 34px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;-webkit-appearance:none"
+      oninput="filterQuickCatList(this.value)">
   </div>
-  <!-- Vrije invoer onderaan -->
-  <div style="flex-shrink:0;border-top:1px solid var(--border);padding-top:12px;margin-top:8px">
-    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">Overige (vrije invoer)</div>
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
-      <input class="quick-label-input" type="text" id="quick-label" placeholder="Omschrijving…" autocomplete="off" style="flex:2">
-      <input class="quick-amount" type="text" inputmode="decimal" id="quick-amount" placeholder="€0" inputmode="decimal" min="0" step="1" style="flex:1;font-size:18px;padding:10px 10px;text-align:right">
+  <!-- Categorie tegels -->
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -4px" id="quick-cat-scroll">
+    <div id="quick-cat-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 4px 8px"></div>
+    <div id="quick-no-results" style="display:none;padding:20px 0;text-align:center;color:var(--muted);font-size:14px">Geen resultaten</div>
+  </div>
+  <!-- Bedrag invoer popup (verschijnt als item geselecteerd) -->
+  <div id="quick-amount-panel" style="display:none;flex-shrink:0;border-top:1px solid var(--border);padding-top:12px;margin-top:8px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span id="quick-selected-label" style="font-size:15px;font-weight:600;color:var(--text);flex:1"></span>
+      <button onclick="closeQuickAmountPanel()" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent">✕</button>
     </div>
-    <button class="quick-save-btn" onclick="saveQuickInvoer()" style="margin-bottom:16px">💾 Sla vrije uitgave op</button>
+    <div id="quick-current-info" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+    <!-- Notitieveld — alleen zichtbaar voor Overige -->
+    <div id="quick-notitie-wrap" style="display:none;margin-bottom:8px">
+      <input type="text" id="quick-notitie" placeholder="Notitie (bv. slager, benzinestation…)" autocomplete="off"
+        style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;-webkit-appearance:none">
+    </div>
+    <input class="quick-amount" type="text" inputmode="decimal" id="quick-cat-amount" placeholder="€0"
+      style="font-size:28px;padding:12px;text-align:center;width:100%;margin-bottom:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:'Playfair Display',serif;-webkit-appearance:none"
+      onkeydown="if(event.key==='Enter')confirmQuickAmount()">
+    <button onclick="confirmQuickAmount()" style="width:100%;padding:14px;background:linear-gradient(135deg,#C0407A,#9B59B6);color:white;border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;min-height:52px;-webkit-tap-highlight-color:transparent">＋ Toevoegen</button>
+  </div>
+</div>
+
+<!-- QUICK INKOMSTEN SHEET -->
+<div class="quick-sheet" id="quick-income-sheet" style="box-shadow:0 -8px 32px rgba(30,122,62,0.15)">
+  <div class="quick-handle" id="quick-income-handle"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0">
+    <div class="quick-title" style="margin-bottom:0;color:var(--income)">💰 Inkomst</div>
+    <div style="display:flex;gap:6px">
+      <button onclick="switchQuickIncomeTab('man')"    id="qitab-man"    style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:600;background:var(--man-light);color:var(--man);cursor:pointer;-webkit-tap-highlight-color:transparent">💙</button>
+      <button onclick="switchQuickIncomeTab('vrouw')"  id="qitab-vrouw"  style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:600;background:var(--bg);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent">🌺</button>
+      <button onclick="switchQuickIncomeTab('gemeenschappelijk')" id="qitab-gem" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:600;background:var(--bg);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent">🏡</button>
+    </div>
+  </div>
+  <!-- Zoekbalk -->
+  <div style="flex-shrink:0;margin-bottom:10px;position:relative">
+    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
+    <input type="text" id="quick-income-search" placeholder="Zoek inkomst…" autocomplete="off"
+      style="width:100%;padding:9px 12px 9px 34px;border:1px solid rgba(30,122,62,0.3);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;-webkit-appearance:none"
+      oninput="filterQuickIncomeList(this.value)">
+  </div>
+  <!-- Inkomsten tegels -->
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -4px" id="quick-income-scroll">
+    <div id="quick-income-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 4px 8px"></div>
+    <div id="quick-income-no-results" style="display:none;padding:20px 0;text-align:center;color:var(--muted);font-size:14px">Geen resultaten</div>
+  </div>
+  <!-- Bedrag invoer -->
+  <div id="quick-income-panel" style="display:none;flex-shrink:0;border-top:1px solid rgba(30,122,62,0.25);padding-top:12px;margin-top:8px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span id="quick-income-label" style="font-size:15px;font-weight:600;color:var(--income);flex:1"></span>
+      <button onclick="closeQuickIncomePanel()" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent">✕</button>
+    </div>
+    <div id="quick-income-cur-info" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+    <!-- Notitieveld voor Extra inkomsten -->
+    <div id="quick-income-notitie-wrap" style="display:none;margin-bottom:8px">
+      <input type="text" id="quick-income-notitie" placeholder="Notitie (bv. freelance opdracht…)" autocomplete="off"
+        style="width:100%;padding:10px 12px;border:1px solid rgba(30,122,62,0.3);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;-webkit-appearance:none">
+    </div>
+    <input type="text" inputmode="decimal" id="quick-income-amount" placeholder="€0"
+      style="font-size:28px;padding:12px;text-align:center;width:100%;margin-bottom:10px;border:1px solid rgba(30,122,62,0.3);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:'Playfair Display',serif;-webkit-appearance:none"
+      onkeydown="if(event.key==='Enter')confirmQuickIncome()">
+    <button onclick="confirmQuickIncome()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1E7A3E,#2ECC71);color:white;border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;min-height:52px;-webkit-tap-highlight-color:transparent">＋ Toevoegen</button>
+  </div>
+</div>
+
+<!-- QUICK TRANSFER SHEET -->
+<div class="quick-sheet" id="quick-transfer-sheet" style="box-shadow:0 -8px 32px rgba(26,100,200,0.15)">
+  <div class="quick-handle" id="quick-transfer-handle"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0">
+    <div class="quick-title" style="margin-bottom:0;color:#1A64C8">💸 Overschrijving</div>
+    <div style="display:flex;gap:6px">
+      <button onclick="switchQuickTransferTab('man')"    id="qttab-man"    style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:600;background:var(--man-light);color:var(--man);cursor:pointer;-webkit-tap-highlight-color:transparent">💙</button>
+      <button onclick="switchQuickTransferTab('vrouw')"  id="qttab-vrouw"  style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:600;background:var(--bg);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent">🌺</button>
+      <button onclick="switchQuickTransferTab('gemeenschappelijk')" id="qttab-gem" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);font-size:13px;font-weight:600;background:var(--bg);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent">🏡</button>
+    </div>
+  </div>
+  <!-- Transfer tegels -->
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -4px" id="quick-transfer-scroll">
+    <div id="quick-transfer-list" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:4px 4px 8px"></div>
+  </div>
+  <!-- Bedrag invoer -->
+  <div id="quick-transfer-panel" style="display:none;flex-shrink:0;border-top:1px solid rgba(26,100,200,0.25);padding-top:12px;margin-top:8px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span id="quick-transfer-label" style="font-size:15px;font-weight:600;color:#1A64C8;flex:1"></span>
+      <button onclick="closeQuickTransferPanel()" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;padding:4px;-webkit-tap-highlight-color:transparent">✕</button>
+    </div>
+    <div id="quick-transfer-cur-info" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+    <input type="text" inputmode="decimal" id="quick-transfer-amount" placeholder="€0"
+      style="font-size:28px;padding:12px;text-align:center;width:100%;margin-bottom:10px;border:1px solid rgba(26,100,200,0.3);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:'Playfair Display',serif;-webkit-appearance:none"
+      onkeydown="if(event.key==='Enter')confirmQuickTransfer()">
+    <button onclick="confirmQuickTransfer()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1A64C8,#4A90E2);color:white;border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;min-height:52px;-webkit-tap-highlight-color:transparent">💸 Overschrijven</button>
   </div>
 </div>
 
@@ -2442,15 +2544,25 @@ const SCHEMA = {
       { key:'rva',               label:'📋 RVA',                       tag:'vast', persist:true },
       { key:'onregelmatig',      label:'⭐ Onregelmatige prestaties',  tag:'var'  },
       { key:'maaltijdchecks',    label:'🥗 Maaltijdchecks',           tag:'var'  },
-      { key:'extra',             label:'✨ Extra inkomsten',           tag:'var'  },
+      { key:'extra',             label:'✨ Extra inkomsten',           tag:'var', extraInkomsten: true },
     ],
     uitgaven: [
       { key:'lening_auto',       label:'🚗 Lening auto',              tag:'vast', persist:true },
       { key:'pensioensparen',    label:'🏦 Pensioensparen',           tag:'vast', persist:true },
-      { key:'abonnementen',      label:'📱 Abonnementen',             tag:'vast', persist:true, abonnementen: true },
       { key:'kledij',            label:'👗 Kledij',                   tag:'var'  },
       { key:'tanken',            label:'⛽ Tanken',                   tag:'var'  },
       { key:'eten',              label:'🍽️ Eten',                     tag:'var'  },
+      { key:'bol',               label:'📦 Bol',                      tag:'var'  },
+      { key:'boodschappen',      label:'🛒 Boodschappen',             tag:'var'  },
+      { key:'belastingen',       label:'📜 Belastingen',              tag:'var'  },
+      { key:'creche',            label:'🍼 Crèche',                   tag:'var'  },
+      { key:'lias',              label:'🧸 Lias',                     tag:'var'  },
+      { key:'action',            label:'🏪 Action',                   tag:'var'  },
+      { key:'zalando',           label:'👟 Zalando',                  tag:'var'  },
+      { key:'poker',             label:'🃏 Poker',                    tag:'var'  },
+      { key:'games',             label:'🕹️ Games',                    tag:'var'  },
+      { key:'cadeau',            label:'🎁 Cadeau',                   tag:'var'  },
+      { key:'abonnementen',      label:'📱 Abonnementen',             tag:'vast', persist:true, abonnementen: true },
       { key:'overige',           label:'💬 Overige',                  tag:'var',  overige: true },
     ]
   },
@@ -2461,40 +2573,57 @@ const SCHEMA = {
       { key:'huur_appartement',  label:'🏠 Huur appartement',         tag:'vast', persist:true },
       { key:'onregelmatig',      label:'⭐ Onregelmatige prestaties',  tag:'var'  },
       { key:'maaltijdchecks',    label:'🥗 Maaltijdchecks',           tag:'var'  },
-      { key:'extra',             label:'✨ Extra inkomsten',           tag:'var'  },
+      { key:'extra',             label:'✨ Extra inkomsten',           tag:'var', extraInkomsten: true },
     ],
     uitgaven: [
       { key:'lening_appartement',label:'🏢 Lening appartement',       tag:'vast', persist:true },
       { key:'pensioensparen',    label:'🏦 Pensioensparen',           tag:'vast', persist:true },
-      { key:'abonnementen',      label:'📱 Abonnementen',             tag:'vast', persist:true, abonnementen: true },
       { key:'kledij',            label:'👗 Kledij',                   tag:'var'  },
       { key:'tanken',            label:'⛽ Tanken',                   tag:'var'  },
-      { key:'bol',               label:'📦 Bol',                      tag:'var'  },
       { key:'eten',              label:'🍽️ Eten',                     tag:'var'  },
+      { key:'bol',               label:'📦 Bol',                      tag:'var'  },
+      { key:'boodschappen',      label:'🛒 Boodschappen',             tag:'var'  },
+      { key:'belastingen',       label:'📜 Belastingen',              tag:'var'  },
+      { key:'creche',            label:'🍼 Crèche',                   tag:'var'  },
+      { key:'lias',              label:'🧸 Lias',                     tag:'var'  },
+      { key:'action',            label:'🏪 Action',                   tag:'var'  },
+      { key:'zalando',           label:'👟 Zalando',                  tag:'var'  },
+      { key:'poker',             label:'🃏 Poker',                    tag:'var'  },
+      { key:'games',             label:'🕹️ Games',                    tag:'var'  },
+      { key:'cadeau',            label:'🎁 Cadeau',                   tag:'var'  },
+      { key:'abonnementen',      label:'📱 Abonnementen',             tag:'vast', persist:true, abonnementen: true },
       { key:'overige',           label:'💬 Overige',                  tag:'var',  overige: true },
     ]
   },
   gemeenschappelijk: {
     inkomsten: [
-      { key:'extra',             label:'✨ Extra inkomsten',           tag:'var'  },
+      { key:'extra',             label:'✨ Extra inkomsten',           tag:'var', extraInkomsten: true },
     ],
     uitgaven: [
+      { key:'lening_auto',       label:'🚗 Lening auto',              tag:'vast', persist:true },
+      { key:'pensioensparen',    label:'🏦 Pensioensparen',           tag:'vast', persist:true },
       { key:'lening_woning',     label:'🏡 Lening woning',            tag:'vast', persist:true },
       { key:'gas',               label:'🔥 Gas',                      tag:'vast', persist:true },
       { key:'elektriciteit',     label:'⚡ Elektriciteit',            tag:'vast', persist:true },
+      { key:'water',             label:'💧 Water',                    tag:'kwartaal' },
       { key:'kadastraal',        label:'📄 Kadastraal inkomen',       tag:'vast', persist:true },
       { key:'woningpolis',       label:'🏠 Woningpolis',              tag:'vast', persist:true },
       { key:'gezinspolis',       label:'🛡️ Gezinspolis',              tag:'vast', persist:true },
       { key:'schuldsaldo',       label:'💳 Schuldsaldo',              tag:'vast', persist:true },
-      { key:'abonnementen',      label:'📱 Abonnementen',             tag:'vast', persist:true, abonnementen: true },
-      { key:'water',             label:'💧 Water',                    tag:'kwartaal' },
+      { key:'kledij',            label:'👗 Kledij',                   tag:'var'  },
+      { key:'tanken',            label:'⛽ Tanken',                   tag:'var'  },
+      { key:'eten',              label:'🍽️ Eten',                     tag:'var'  },
+      { key:'bol',               label:'📦 Bol',                      tag:'var'  },
       { key:'boodschappen',      label:'🛒 Boodschappen',             tag:'var'  },
       { key:'belastingen',       label:'📜 Belastingen',              tag:'var'  },
       { key:'creche',            label:'🍼 Crèche',                   tag:'var'  },
-      { key:'lias_kledij',       label:'🛍️ Lias kledij',              tag:'var'  },
-      { key:'lias_baby',         label:'🧸 Lias pampers/doekjes/zeep',tag:'var'  },
-      { key:'bol',               label:'📦 Bol',                      tag:'var'  },
-      { key:'eten',              label:'🍽️ Eten',                     tag:'var'  },
+      { key:'lias',              label:'🧸 Lias',                     tag:'var'  },
+      { key:'action',            label:'🏪 Action',                   tag:'var'  },
+      { key:'zalando',           label:'👟 Zalando',                  tag:'var'  },
+      { key:'poker',             label:'🃏 Poker',                    tag:'var'  },
+      { key:'games',             label:'🕹️ Games',                    tag:'var'  },
+      { key:'cadeau',            label:'🎁 Cadeau',                   tag:'var'  },
+      { key:'abonnementen',      label:'📱 Abonnementen',             tag:'vast', persist:true, abonnementen: true },
       { key:'overige',           label:'💬 Overige',                  tag:'var',  overige: true },
     ]
   }
@@ -2744,6 +2873,455 @@ function removeOverigeItem(rek, type, idx) {
   renderAll();
   recalcAll();
 }
+
+// Verwijder een gewone uitgave-rij (zet op 0 / leeg)
+function verwijderUitgaveRij(rek, type, key) {
+  const d = loadData();
+  if (d[rek] && d[rek][type]) {
+    delete d[rek][type][key];
+    saveData(d);
+  }
+  renderAll();
+  recalcAll();
+}
+
+// ===== QUICK INKOMSTEN =====
+let _quickIncomeOpen = false;
+let _quickIncomeRek = 'man';
+let _quickIncomeKey = null;
+
+// Universele inkomsten-tegels (gelijk voor iedereen)
+const ALLE_INKOMSTEN_TEGELS = [
+  { key:'loon',             label:'💼 Loon',                    type:'schema' },
+  { key:'rva',              label:'📋 RVA',                      type:'schema' },
+  { key:'onregelmatig',     label:'⭐ Onregelmatig',            type:'schema' },
+  { key:'maaltijdchecks',   label:'🥗 Maaltijdchecks',         type:'schema' },
+  { key:'huur_appartement', label:'🏠 Huur appartement',        type:'schema' },
+  { key:'extra',            label:'✨ Extra inkomsten',          type:'extra_inkomsten' }, // gedraagt zich als overige
+];
+
+function getInkomstTegelBedrag(tegel, rek) {
+  if (tegel.type === 'extra_inkomsten') {
+    return loadOverige(rek, 'inkomsten_extra_' + tegel.key).reduce((s, o) => s + (parseBedrag(o.bedrag) || 0), 0);
+  }
+  // Check if key exists in schema for this rek
+  const schemaItem = SCHEMA[rek].inkomsten.find(i => i.key === tegel.key);
+  if (schemaItem) return parseBedrag(getValue(rek, 'inkomsten', tegel.key, schemaItem.persist)) || 0;
+  return 0; // key niet in schema van deze rek — toon tegel maar sla niet op
+}
+
+function toggleQuickInkomsten() {
+  _quickIncomeOpen ? closeQuickInkomsten() : openQuickInkomsten();
+}
+function openQuickInkomsten() {
+  _quickIncomeOpen = true;
+  document.getElementById('quick-income-sheet').classList.add('open');
+  document.getElementById('quick-income-backdrop').classList.add('open');
+  document.getElementById('fab-income').classList.add('open');
+  setupIncomeSwipeClose();
+  closeQuickIncomePanel();
+  const searchEl = document.getElementById('quick-income-search');
+  if (searchEl) searchEl.value = '';
+  const activeTab = TAB_ORDER[currentTabIdx];
+  if (activeTab === 'man' || activeTab === 'vrouw' || activeTab === 'gemeenschappelijk') {
+    switchQuickIncomeTab(activeTab);
+  } else {
+    switchQuickIncomeTab('man');
+  }
+}
+function closeQuickInkomsten() {
+  _quickIncomeOpen = false;
+  document.getElementById('quick-income-sheet').classList.remove('open');
+  document.getElementById('quick-income-backdrop').classList.remove('open');
+  document.getElementById('fab-income').classList.remove('open');
+  closeQuickIncomePanel();
+}
+
+function switchQuickIncomeTab(rek) {
+  _quickIncomeRek = rek;
+  const colors = { man: 'var(--man)', vrouw: 'var(--vrouw)', gemeenschappelijk: 'var(--gem)' };
+  const bgs    = { man: 'var(--man-light)', vrouw: 'var(--vrouw-light)', gemeenschappelijk: 'var(--gem-light)' };
+  ['man','vrouw','gemeenschappelijk'].forEach(r => {
+    const btn = document.getElementById('qitab-' + (r === 'gemeenschappelijk' ? 'gem' : r));
+    if (!btn) return;
+    const active = r === rek;
+    btn.style.background = active ? bgs[r] : 'var(--bg)';
+    btn.style.color       = active ? colors[r] : 'var(--muted)';
+    btn.style.borderColor = active ? colors[r] : 'var(--border)';
+  });
+  closeQuickIncomePanel();
+  const searchEl = document.getElementById('quick-income-search');
+  if (searchEl) searchEl.value = '';
+  renderQuickIncomeList();
+}
+
+function renderQuickIncomeList(filter) {
+  const container = document.getElementById('quick-income-list');
+  const noResults = document.getElementById('quick-income-no-results');
+  if (!container) return;
+  const rek = _quickIncomeRek;
+  const q = (filter || '').toLowerCase().trim();
+  const gefilterd = q ? ALLE_INKOMSTEN_TEGELS.filter(t => t.label.toLowerCase().includes(q)) : ALLE_INKOMSTEN_TEGELS;
+
+  if (!gefilterd.length) {
+    container.innerHTML = '';
+    if (noResults) noResults.style.display = 'block';
+    return;
+  }
+  if (noResults) noResults.style.display = 'none';
+
+  container.innerHTML = gefilterd.map(tegel => {
+    const curAmt = getInkomstTegelBedrag(tegel, rek);
+    const hasVal = curAmt > 0;
+    const { emoji, text } = extractEmoji(tegel.label);
+    const amtHtml = hasVal ? `<div class="quick-tile-amt" style="color:var(--income)">${fmt(curAmt)}</div>` : '';
+    return `<button class="quick-tile${hasVal ? ' has-value' : ''}" id="qitile-${rek}-${tegel.key}"
+      style="${hasVal ? 'border-color:var(--income);background:var(--income-light)' : ''}"
+      onclick="selectQuickIncomeTile('${rek}','${tegel.key}')"
+      aria-label="${tegel.label}">
+      <div class="quick-tile-icon">${emoji}</div>
+      <div class="quick-tile-label">${text}</div>
+      ${amtHtml}
+    </button>`;
+  }).join('');
+}
+
+function filterQuickIncomeList(val) {
+  renderQuickIncomeList(val);
+}
+
+function selectQuickIncomeTile(rek, key) {
+  _quickIncomeKey = key;
+  _quickIncomeRek = rek;
+  const panel = document.getElementById('quick-income-panel');
+  const labelEl = document.getElementById('quick-income-label');
+  const curInfoEl = document.getElementById('quick-income-cur-info');
+  const amtInput = document.getElementById('quick-income-amount');
+  const notitieWrap = document.getElementById('quick-income-notitie-wrap');
+  const notitieInput = document.getElementById('quick-income-notitie');
+  if (!panel) return;
+
+  const tegel = ALLE_INKOMSTEN_TEGELS.find(t => t.key === key);
+  const label = tegel ? tegel.label : key;
+  const isExtra = tegel && tegel.type === 'extra_inkomsten';
+  const curAmt = tegel ? getInkomstTegelBedrag(tegel, rek) : 0;
+
+  if (labelEl) labelEl.textContent = label;
+  if (curInfoEl) curInfoEl.textContent = curAmt > 0 ? `Huidig: ${fmt(curAmt)} — nieuw bedrag wordt opgeteld` : '';
+  if (amtInput) { amtInput.value = ''; amtInput.placeholder = '€0'; }
+  if (notitieWrap) notitieWrap.style.display = isExtra ? 'block' : 'none';
+  if (notitieInput) notitieInput.value = '';
+
+  panel.style.display = 'block';
+  setTimeout(() => {
+    if (isExtra && notitieInput) notitieInput.focus();
+    else if (amtInput) amtInput.focus();
+  }, 80);
+}
+
+function closeQuickIncomePanel() {
+  const panel = document.getElementById('quick-income-panel');
+  if (panel) panel.style.display = 'none';
+  const nw = document.getElementById('quick-income-notitie-wrap');
+  if (nw) nw.style.display = 'none';
+  const ni = document.getElementById('quick-income-notitie');
+  if (ni) ni.value = '';
+  _quickIncomeKey = null;
+}
+
+function confirmQuickIncome() {
+  const rek = _quickIncomeRek;
+  const key = _quickIncomeKey;
+  const amtInput = document.getElementById('quick-income-amount');
+  const extra = parseBedrag(amtInput ? amtInput.value : '') || 0;
+  if (extra <= 0) { if (amtInput) amtInput.focus(); return; }
+
+  const tegel = ALLE_INKOMSTEN_TEGELS.find(t => t.key === key);
+
+  if (tegel && tegel.type === 'extra_inkomsten') {
+    const notitieInput = document.getElementById('quick-income-notitie');
+    const notitie = (notitieInput ? notitieInput.value.trim() : '') || 'Extra inkomst';
+    const list = loadOverige(rek, 'inkomsten_extra_' + key);
+    list.push({ label: notitie, bedrag: String(extra) });
+    saveOverige(rek, 'inkomsten_extra_' + key, list);
+  } else {
+    // Sla op in schema als key bestaat, anders sla op als generieke key
+    const schemaItem = SCHEMA[rek].inkomsten.find(i => i.key === key);
+    const cur = parseBedrag(getValue(rek, 'inkomsten', key, schemaItem ? schemaItem.persist : false)) || 0;
+    setValue(rek, 'inkomsten', key, String(cur + extra));
+  }
+
+  renderAll();
+  recalcAll();
+
+  const tileEl = document.getElementById(`qitile-${rek}-${key}`);
+  if (tileEl) {
+    tileEl.style.background = 'var(--income-light)';
+    tileEl.style.borderColor = 'var(--income)';
+    setTimeout(() => {
+      tileEl.style.background = '';
+      tileEl.style.borderColor = '';
+      renderQuickIncomeList(document.getElementById('quick-income-search')?.value || '');
+    }, 800);
+  } else {
+    renderQuickIncomeList(document.getElementById('quick-income-search')?.value || '');
+  }
+
+  closeQuickIncomePanel();
+}
+
+function setupIncomeSwipeClose() {
+  const sheet = document.getElementById('quick-income-sheet');
+  if (sheet._swipeSetup) return;
+  sheet._swipeSetup = true;
+  let startY = 0, dy = 0, dragging = false, touchId = null;
+  function onTouchStart(e) {
+    const touch = e.touches[0];
+    const sheetTop = sheet.getBoundingClientRect().top;
+    if (touch.clientY > sheetTop + 56) return;
+    touchId = touch.identifier;
+    startY = touch.clientY;
+    dy = 0; dragging = false;
+    sheet.style.transition = 'none';
+  }
+  function onTouchMove(e) {
+    if (touchId === null) return;
+    const touch = Array.from(e.touches).find(t => t.identifier === touchId);
+    if (!touch) return;
+    const currentDy = touch.clientY - startY;
+    if (!dragging && currentDy > 6) { dragging = true; }
+    if (dragging && currentDy > 0) {
+      dy = currentDy;
+      sheet.style.transform = `translateY(${dy}px)`;
+    }
+  }
+  function onTouchEnd() {
+    if (!dragging) { touchId = null; return; }
+    sheet.style.transition = '';
+    if (dy > 80) {
+      sheet.style.transform = 'translateY(100%)';
+      setTimeout(() => { sheet.style.transform = ''; closeQuickInkomsten(); }, 280);
+    } else {
+      sheet.style.transform = '';
+    }
+    dy = 0; dragging = false; touchId = null;
+  }
+  sheet.addEventListener('touchstart', onTouchStart, { passive: true });
+  sheet.addEventListener('touchmove',  onTouchMove,  { passive: true });
+  sheet.addEventListener('touchend',   onTouchEnd);
+  sheet.addEventListener('touchcancel',onTouchEnd);
+}
+
+// Voeg een extra bedrag toe aan een bestaand overige item (inline prompt)
+function addToOverigeItem(rek, type, idx) {
+  const extra = parseBedrag(prompt('Hoeveel toevoegen?') || '');
+  if (!extra || extra <= 0) return;
+  const list = loadOverige(rek, type);
+  if (!list[idx]) return;
+  list[idx].bedrag = String((parseBedrag(list[idx].bedrag) || 0) + extra);
+  saveOverige(rek, type, list);
+  renderAll();
+  recalcAll();
+}
+
+// ===== QUICK TRANSFER (OVERSCHRIJVINGEN) =====
+let _quickTransferOpen = false;
+let _quickTransferRek = 'man';
+let _quickTransferKey = null;
+const TRANSFER_OPTIES = {
+  man: [
+    { key:'bijdrage_gem', label:'🏡 Gem. rekening', icon:'🏡', description:'David → Gemeenschappelijk', type:'bijdrage', naar:'gem' },
+    { key:'transfer_vrouw', label:'🌺 Naar Lauren', icon:'🌺', description:'David → Lauren', type:'transfer', naar:'vrouw' },
+  ],
+  vrouw: [
+    { key:'bijdrage_gem', label:'🏡 Gem. rekening', icon:'🏡', description:'Lauren → Gemeenschappelijk', type:'bijdrage', naar:'gem' },
+    { key:'transfer_man', label:'💙 Naar David', icon:'💙', description:'Lauren → David', type:'transfer', naar:'man' },
+  ],
+  gemeenschappelijk: [
+    { key:'transfer_man', label:'💙 Naar David', icon:'💙', description:'Gem. → David', type:'transfer', naar:'man' },
+    { key:'transfer_vrouw', label:'🌺 Naar Lauren', icon:'🌺', description:'Gem. → Lauren', type:'transfer', naar:'vrouw' },
+  ],
+};
+
+function getTransferBedrag(optie, rek) {
+  if (optie.type === 'bijdrage') return getBijdrage(rek);
+  const vanKey = rek === 'gemeenschappelijk' ? 'gem' : rek;
+  return getTransfer(vanKey, optie.naar);
+}
+
+function toggleQuickTransfer() {
+  _quickTransferOpen ? closeQuickTransfer() : openQuickTransfer();
+}
+function openQuickTransfer() {
+  _quickTransferOpen = true;
+  document.getElementById('quick-transfer-sheet').classList.add('open');
+  document.getElementById('quick-transfer-backdrop').classList.add('open');
+  document.getElementById('fab-transfer').classList.add('open');
+  setupTransferSwipeClose();
+  closeQuickTransferPanel();
+  const activeTab = TAB_ORDER[currentTabIdx];
+  const rek = (activeTab === 'man' || activeTab === 'vrouw' || activeTab === 'gemeenschappelijk') ? activeTab : _quickTransferRek;
+  switchQuickTransferTab(rek);
+}
+
+function switchQuickTransferTab(rek) {
+  _quickTransferRek = rek;
+  const colors = { man: 'var(--man)', vrouw: 'var(--vrouw)', gemeenschappelijk: 'var(--gem)' };
+  const bgs    = { man: 'var(--man-light)', vrouw: 'var(--vrouw-light)', gemeenschappelijk: 'var(--gem-light)' };
+  ['man','vrouw','gemeenschappelijk'].forEach(r => {
+    const btn = document.getElementById('qttab-' + (r === 'gemeenschappelijk' ? 'gem' : r));
+    if (!btn) return;
+    const active = r === rek;
+    btn.style.background  = active ? bgs[r]    : 'var(--bg)';
+    btn.style.color       = active ? colors[r] : 'var(--muted)';
+    btn.style.borderColor = active ? colors[r] : 'var(--border)';
+  });
+  closeQuickTransferPanel();
+  renderQuickTransferList();
+}
+function closeQuickTransfer() {
+  _quickTransferOpen = false;
+  document.getElementById('quick-transfer-sheet').classList.remove('open');
+  document.getElementById('quick-transfer-backdrop').classList.remove('open');
+  document.getElementById('fab-transfer').classList.remove('open');
+  closeQuickTransferPanel();
+}
+
+function renderQuickTransferList() {
+  const container = document.getElementById('quick-transfer-list');
+  if (!container) return;
+  const rek = _quickTransferRek;
+  const opties = TRANSFER_OPTIES[rek] || [];
+  container.innerHTML = opties.map(optie => {
+    const curAmt = getTransferBedrag(optie, rek);
+    const hasVal = curAmt > 0;
+    return `<button class="quick-tile${hasVal ? ' has-value' : ''}" id="qtransfer-${rek}-${optie.key}"
+      style="min-height:88px;${hasVal ? 'border-color:#1A64C8;background:var(--transfer-light)' : ''}"
+      onclick="selectQuickTransferTile('${rek}','${optie.key}')">
+      <div class="quick-tile-icon" style="font-size:28px">${optie.icon}</div>
+      <div class="quick-tile-label" style="font-size:12px;font-weight:600">${optie.label}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">${optie.description}</div>
+      ${hasVal ? `<div class="quick-tile-amt" style="color:#1A64C8;font-size:12px">${fmt(curAmt)}</div>` : ''}
+    </button>`;
+  }).join('');
+}
+
+function selectQuickTransferTile(rek, key) {
+  _quickTransferKey = key;
+  const panel = document.getElementById('quick-transfer-panel');
+  const labelEl = document.getElementById('quick-transfer-label');
+  const curInfoEl = document.getElementById('quick-transfer-cur-info');
+  const amtInput = document.getElementById('quick-transfer-amount');
+  const opties = TRANSFER_OPTIES[rek] || [];
+  const optie = opties.find(o => o.key === key);
+  if (!optie || !panel) return;
+  const curAmt = getTransferBedrag(optie, rek);
+  if (labelEl) labelEl.textContent = optie.description;
+  if (curInfoEl) curInfoEl.textContent = curAmt > 0 ? `Huidig: ${fmt(curAmt)} — nieuw bedrag vervangt het bestaande` : '';
+  if (amtInput) { amtInput.value = curAmt > 0 ? String(curAmt) : ''; amtInput.placeholder = '€0'; }
+  panel.style.display = 'block';
+  setTimeout(() => { if (amtInput) amtInput.focus(); }, 80);
+}
+
+function closeQuickTransferPanel() {
+  const panel = document.getElementById('quick-transfer-panel');
+  if (panel) panel.style.display = 'none';
+  _quickTransferKey = null;
+}
+
+function confirmQuickTransfer() {
+  const rek = _quickTransferRek;
+  const key = _quickTransferKey;
+  const amtInput = document.getElementById('quick-transfer-amount');
+  const bedrag = parseBedrag(amtInput ? amtInput.value : '') || 0;
+  if (bedrag < 0) { if (amtInput) amtInput.focus(); return; }
+
+  const opties = TRANSFER_OPTIES[rek] || [];
+  const optie = opties.find(o => o.key === key);
+  if (!optie) return;
+
+  if (optie.type === 'bijdrage') {
+    setBijdrage(rek, String(bedrag));
+  } else {
+    const vanKey = rek === 'gemeenschappelijk' ? 'gem' : rek;
+    setTransfer(vanKey, optie.naar, String(bedrag));
+  }
+
+  renderAll(); recalcAll();
+
+  const tileEl = document.getElementById(`qtransfer-${rek}-${key}`);
+  if (tileEl) {
+    tileEl.style.background = 'var(--transfer-light)';
+    tileEl.style.borderColor = '#1A64C8';
+    setTimeout(() => {
+      tileEl.style.background = '';
+      tileEl.style.borderColor = '';
+      renderQuickTransferList();
+    }, 800);
+  } else { renderQuickTransferList(); }
+
+  closeQuickTransferPanel();
+}
+
+function setupTransferSwipeClose() {
+  const sheet = document.getElementById('quick-transfer-sheet');
+  if (sheet._swipeSetup) return;
+  sheet._swipeSetup = true;
+  let startY = 0, dy = 0, dragging = false, touchId = null;
+  function onTouchStart(e) {
+    const touch = e.touches[0];
+    if (touch.clientY > sheet.getBoundingClientRect().top + 56) return;
+    touchId = touch.identifier; startY = touch.clientY; dy = 0; dragging = false;
+    sheet.style.transition = 'none';
+  }
+  function onTouchMove(e) {
+    if (touchId === null) return;
+    const touch = Array.from(e.touches).find(t => t.identifier === touchId);
+    if (!touch) return;
+    const currentDy = touch.clientY - startY;
+    if (!dragging && currentDy > 6) dragging = true;
+    if (dragging && currentDy > 0) { dy = currentDy; sheet.style.transform = `translateY(${dy}px)`; }
+  }
+  function onTouchEnd() {
+    if (!dragging) { touchId = null; return; }
+    sheet.style.transition = '';
+    if (dy > 80) {
+      sheet.style.transform = 'translateY(100%)';
+      setTimeout(() => { sheet.style.transform = ''; closeQuickTransfer(); }, 280);
+    } else { sheet.style.transform = ''; }
+    dy = 0; dragging = false; touchId = null;
+  }
+  sheet.addEventListener('touchstart', onTouchStart, { passive: true });
+  sheet.addEventListener('touchmove',  onTouchMove,  { passive: true });
+  sheet.addEventListener('touchend',   onTouchEnd);
+  sheet.addEventListener('touchcancel',onTouchEnd);
+}
+
+// Toon/verberg transfer FAB op basis van actieve tab
+function updateTransferFabVisibility() {
+  const fab = document.getElementById('fab-transfer');
+  if (!fab) return;
+  fab.style.display = 'flex';
+  const activeTab = TAB_ORDER[currentTabIdx];
+  // Update welke rekening bij de fab hoort (default naar man voor overzicht/jaar)
+  if (activeTab === 'man' || activeTab === 'vrouw' || activeTab === 'gemeenschappelijk') {
+    _quickTransferRek = activeTab;
+  }
+  // For overzicht and jaar: keep last selected rek, or default to man
+  if (!_quickTransferRek) _quickTransferRek = 'man';
+}
+
+// Voeg een extra bedrag toe aan een bestaand overige item
+function addToOverigeItem(rek, type, idx) {
+  const extra = parseBedrag(prompt('Hoeveel toevoegen?') || '');
+  if (!extra || extra <= 0) return;
+  const list = loadOverige(rek, type);
+  if (!list[idx]) return;
+  list[idx].bedrag = String((parseBedrag(list[idx].bedrag) || 0) + extra);
+  saveOverige(rek, type, list);
+  renderAll();
+  recalcAll();
+}
 function calcOverigeTotal(rek, type) {
   return loadOverige(rek, type).reduce((s, i) => s + (parseBedrag(i.bedrag) || 0), 0);
 }
@@ -2931,7 +3509,10 @@ function kopieerVasteItemsVanVorigeMaand() {
 
 // ===== MONTH NAV =====
 function updateMonthLabel() {
-  document.getElementById('month-label').textContent = `${MAANDEN[currentMonth].substring(0,3)} ${currentYear}`;
+  const label = `${MAANDEN[currentMonth].substring(0,3)} ${currentYear}`;
+  document.getElementById('month-label').textContent = label;
+  const titleEl = document.getElementById('header-month-title');
+  if (titleEl) titleEl.textContent = `${MAANDEN[currentMonth]} ${currentYear}`;
 }
 function changeMonth(delta) {
   currentMonth += delta;
@@ -2950,15 +3531,6 @@ function changeMonth(delta) {
   recalcAll();
 }
 
-// ===== TABS =====
-function switchTab(tab) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-  document.getElementById(`panel-${tab}`).classList.add('active');
-  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-  document.getElementById('scroll-area').scrollTo({ top: 0, behavior: 'smooth' });
-}
-
 // ===== RENDER SECTION CARDS =====
 function renderSectionCard(containerId, rek, type) {
   const container = document.getElementById(containerId);
@@ -2967,9 +3539,43 @@ function renderSectionCard(containerId, rek, type) {
   const title = type === 'inkomsten' ? 'Inkomsten' : 'Uitgaven';
 
   const rows = items.map(item => {
+    if (item.extraInkomsten) {
+      // Expandable extra inkomsten block with note + amount (like overige)
+      const list = loadOverige(rek, type + '_extra_' + item.key);
+      const extraTotal = list.reduce((s, i) => s + (parseBedrag(i.bedrag) || 0), 0);
+      const total = extraTotal;
+      // Verberg als er geen items zijn
+      if (list.length === 0) return '';
+      const subRows = list.map((it, idx) => `
+        <div class="overige-sub-row" id="ov-row-${rek}-${type}-extra-${idx}">
+          <div class="overige-sub-row-inner">
+            <input class="overige-notitie-input" type="text" value="${it.label || ''}" placeholder="Notitie (bv. bonus)"
+              oninput="updateOverigeItem('${rek}','${type}_extra_${item.key}',${idx},'label',this.value)"
+              onchange="updateOverigeItem('${rek}','${type}_extra_${item.key}',${idx},'label',this.value)">
+            <input class="overige-bedrag-input" type="text" inputmode="decimal" value="${it.bedrag || ''}" placeholder="0"
+              inputmode="decimal"
+              oninput="updateOverigeItem('${rek}','${type}_extra_${item.key}',${idx},'bedrag',this.value)"
+              onchange="updateOverigeItem('${rek}','${type}_extra_${item.key}',${idx},'bedrag',this.value)">
+          </div>
+          <button class="row-plus-btn" onclick="addToOverigeItem('${rek}','${type}_extra_${item.key}',${idx})" title="Bijvullen" style="flex-shrink:0">＋</button>
+          <button class="overige-del-btn" onclick="removeOverigeItem('${rek}','${type}_extra_${item.key}',${idx})" aria-label="Verwijder">🗑</button>
+        </div>`).join('');
+      return `
+      <div class="overige-block">
+        <div class="budget-row overige-hdr-row" style="padding-right:60px">
+          <span class="row-label" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px">
+            <span>${item.label}</span>
+          </span>
+          <span class="overige-total-amt" id="total-extra-${rek}-${item.key}">${total === 0 ? '' : fmt(total)}</span>
+        </div>
+        <div class="overige-sub-list">${subRows}</div>
+      </div>`;
+    }
     if (item.abonnementen) {
       // Collapsible abonnementen block with fixed sub-items (same list for all rekeningen)
       const total = calcAbonnementenTotal(rek);
+      // Voor uitgaven: verberg als totaal 0 is
+      if (type === 'uitgaven' && total === 0) return '';
       const isOpen = abonnementenOpen[rek];
       const subRows = isOpen ? getAbonnementenItems(rek).map(ab => {
         const v = getAbonnement(ab.key, ab.persist, rek);
@@ -2985,12 +3591,13 @@ function renderSectionCard(containerId, rek, type) {
       }).join('') : '';
       return `
       <div class="overige-block">
-        <div class="budget-row overige-hdr-row" onclick="toggleAbonnementen('${rek}')" style="cursor:pointer;user-select:none;-webkit-user-select:none;">
-          <span class="row-label">Abonnementen${tagHtml(item.tag)}</span>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="overige-total-amt" id="total-abonnementen-${rek}">${fmt(total)}</span>
-            <span style="font-size:20px;color:var(--muted);line-height:1;display:inline-block;transition:transform 0.2s;transform:rotate(${isOpen?'180':'0'}deg)">⌄</span>
-          </div>
+        <div class="budget-row overige-hdr-row has-chevron" onclick="toggleAbonnementen('${rek}')" style="cursor:pointer;user-select:none;-webkit-user-select:none;padding-right:36px">
+          <span class="row-label" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px">
+            <span>${item.label}</span>
+            ${vastVarBadgeHtml(item, rek, type)}
+          </span>
+          <span class="overige-total-amt" id="total-abonnementen-${rek}" style="color:${total===0?'var(--muted)':''}">${total === 0 ? '' : fmt(total)}</span>
+          <span class="abonnement-chevron" style="transform:rotate(${isOpen?'180':'0'}deg)">⌄</span>
         </div>
         ${isOpen ? `<div class="overige-sub-list" style="padding:0">${subRows}</div>` : ''}
       </div>`;
@@ -2999,6 +3606,8 @@ function renderSectionCard(containerId, rek, type) {
       // Expandable overige block
       const list = loadOverige(rek, type);
       const total = calcOverigeTotal(rek, type);
+      // Voor uitgaven: verberg als er geen items zijn
+      if (type === 'uitgaven' && list.length === 0) return '';
       const subRows = list.map((it, idx) => `
         <div class="overige-sub-row" id="ov-row-${rek}-${type}-${idx}">
           <div class="overige-sub-row-inner">
@@ -3012,21 +3621,29 @@ function renderSectionCard(containerId, rek, type) {
               onchange="updateOverigeItem('${rek}','${type}',${idx},'bedrag',this.value)"
               onkeydown="overigeKeyNav(event,'${rek}','${type}',${idx},'bedrag')">
           </div>
+          <button class="row-plus-btn" onclick="addToOverigeItem('${rek}','${type}',${idx})" title="Bijvullen" style="flex-shrink:0">＋</button>
           <button class="overige-del-btn" onclick="removeOverigeItem('${rek}','${type}',${idx})" aria-label="Verwijder">🗑</button>
         </div>`).join('');
       return `
       <div class="overige-block">
-        <div class="budget-row overige-hdr-row">
-          <span class="row-label">Overige${tagHtml(item.tag)}</span>
-          <span class="overige-total-amt">${fmt(total)}</span>
+        <div class="budget-row overige-hdr-row" style="padding-right:60px">
+          <span class="row-label" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px">
+            <span>💬 Overige</span>
+            ${vastVarBadgeHtml(item, rek, type)}
+          </span>
+          <span class="overige-total-amt">${total === 0 ? '' : fmt(total)}</span>
         </div>
         <div class="overige-sub-list">${subRows}</div>
         <button class="overige-add-btn" onclick="addOverigeItem('${rek}','${type}')">＋ Toevoegen</button>
       </div>`;
     }
     const val = getValue(rek, type, item.key, item.persist);
+    // Verberg rij als er geen waarde is (zowel inkomsten als uitgaven)
+    if (!val || parseBedrag(val) === 0) return '';
     const rowId = `brow-${rek}-${type}-${item.key}`;
     const vvBadge = vastVarBadgeHtml(item, rek, type);
+    // Verwijderknop voor alle rijen
+    const delBtn = `<button class="overige-del-btn" onclick="verwijderUitgaveRij('${rek}','${type}','${item.key}')" aria-label="Verwijder" title="Verwijder">🗑</button>`;
     return `
     <div class="budget-row" id="${rowId}">
       <span class="row-label" style="display:flex;flex-direction:column;align-items:flex-start;gap:3px">
@@ -3039,6 +3656,7 @@ function renderSectionCard(containerId, rek, type) {
         onchange="setValue('${rek}','${type}','${item.key}',this.value)"
         oninput="setValue('${rek}','${type}','${item.key}',this.value)"
         onkeydown="budgetRowKeyNav(event)">
+      ${delBtn}
     </div>
     <div class="row-add-inline" id="${rowId}-add">
       <span class="row-add-inline-lbl">＋ voeg toe</span>
@@ -3157,6 +3775,17 @@ function confirmTransferAdd(type, van, naar, addId) {
 }
 
 // ===== BIJDRAGE OPSLAAN =====
+// Verwijder een overschrijving (reset naar 0)
+function verwijderTransfer(type, van, naar) {
+  if (type === 'bijdrage') {
+    setBijdrage(van, '0');
+  } else {
+    setTransfer(van, naar, '0');
+  }
+  renderAll();
+  recalcAll();
+}
+
 function setBijdrage(rek, val) {
   const d = loadData();
   if (!d[rek]) d[rek] = {};
@@ -3228,13 +3857,25 @@ function calcCore() {
   // Inkomsten (use persist fallback)
   let davidIn = 0, laurenIn = 0, gemExtraIn = 0;
   SCHEMA.man.inkomsten.forEach(i => {
-    davidIn += parseBedrag(getValue('man', 'inkomsten', i.key, i.persist)) || 0;
+    if (i.extraInkomsten) {
+      davidIn += loadOverige('man', 'inkomsten_extra_' + i.key).reduce((s, o) => s + (parseBedrag(o.bedrag) || 0), 0);
+    } else {
+      davidIn += parseBedrag(getValue('man', 'inkomsten', i.key, i.persist)) || 0;
+    }
   });
   SCHEMA.vrouw.inkomsten.forEach(i => {
-    laurenIn += parseBedrag(getValue('vrouw', 'inkomsten', i.key, i.persist)) || 0;
+    if (i.extraInkomsten) {
+      laurenIn += loadOverige('vrouw', 'inkomsten_extra_' + i.key).reduce((s, o) => s + (parseBedrag(o.bedrag) || 0), 0);
+    } else {
+      laurenIn += parseBedrag(getValue('vrouw', 'inkomsten', i.key, i.persist)) || 0;
+    }
   });
   SCHEMA.gemeenschappelijk.inkomsten.forEach(i => {
-    gemExtraIn += parseBedrag(getValue('gemeenschappelijk', 'inkomsten', i.key, i.persist)) || 0;
+    if (i.extraInkomsten) {
+      gemExtraIn += loadOverige('gemeenschappelijk', 'inkomsten_extra_' + i.key).reduce((s, o) => s + (parseBedrag(o.bedrag) || 0), 0);
+    } else {
+      gemExtraIn += parseBedrag(getValue('gemeenschappelijk', 'inkomsten', i.key, i.persist)) || 0;
+    }
   });
 
   // Overschrijvingen tussen rekeningen
@@ -3291,8 +3932,8 @@ function calcCore() {
   const davidSpaarOverride  = getSpaarOverride('man');
   const laurenSpaarOverride = getSpaarOverride('vrouw');
 
-  const davidSpaar  = davidSpaarOverride  !== null ? davidSpaarOverride  : Math.max(0, davidBeschikbaar);
-  const laurenSpaar = laurenSpaarOverride !== null ? laurenSpaarOverride : Math.max(0, laurenBeschikbaar);
+  const davidSpaar  = davidSpaarOverride  !== null ? davidSpaarOverride  : davidBeschikbaar;
+  const laurenSpaar = laurenSpaarOverride !== null ? laurenSpaarOverride : laurenBeschikbaar;
 
   const davidSaldo  = davidBeschikbaar  - davidSpaar;
   const laurenSaldo = laurenBeschikbaar - laurenSpaar;
@@ -3358,15 +3999,15 @@ function renderSpaarCardStyled(containerId, rek, spaarBedrag, isAuto, beschikbaa
         <span style="display:flex;align-items:center;gap:6px;margin-top:3px">${autoLabel}</span>
       </span>
       <input class="spaar-input" type="text" inputmode="decimal" id="input-${rek}-sparen"
-        value="${spaarBedrag > 0 || !isAuto ? (spaarBedrag || '') : ''}"
-        placeholder="${isAuto ? fmt(Math.max(0, beschikbaar)) : '0'}"
+        value="${spaarBedrag !== 0 || !isAuto ? (spaarBedrag || '') : ''}"
+        placeholder="${isAuto ? fmt(beschikbaar) : '0'}"
         inputmode="decimal"
-        style="color:${c};border-color:${cBorder}"
+        style="color:${spaarBedrag < 0 ? 'var(--danger)' : c};border-color:${cBorder}"
         onchange="setSpaar('${rek}', this.value)"
         oninput="setSpaar('${rek}', this.value)">
     </div>
     <div class="spaar-info-row" style="color:${c}">
-      Beschikbaar na uitgaven & bijdrage: <strong>${fmt(beschikbaar)}</strong>
+      Beschikbaar na uitgaven & bijdrage: <strong style="color:${beschikbaar < 0 ? 'var(--danger)' : 'inherit'}">${fmt(beschikbaar)}</strong>
     </div>`;
 }
 
@@ -3414,6 +4055,37 @@ function recalcAll() {
   if (tManBij) tManBij.textContent = fmt(c.bijDavid);
   if (tVroBij) tVroBij.textContent = fmt(c.bijLauren);
 
+  // Vul transfer inputvelden
+  function fillTransferInput(id, val) {
+    const el = document.getElementById(id);
+    if (el && document.activeElement !== el) el.value = val > 0 ? String(val) : '';
+  }
+  fillTransferInput('input-man-naar-vrouw',  c.transferManVrouw);
+  fillTransferInput('input-vrouw-naar-man',  c.transferVrouwMan);
+  fillTransferInput('input-gem-naar-man',    c.transferGemMan);
+  fillTransferInput('input-gem-naar-vrouw',  c.transferGemVrouw);
+
+  // Transfer totalen
+  const setTot = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = fmt(v); };
+  setTot('total-man-bijdrage',   c.bijDavid);
+  setTot('total-vrouw-bijdrage', c.bijLauren);
+  setTot('total-man-naar-vrouw',  c.transferManVrouw);
+  setTot('total-vrouw-naar-man',  c.transferVrouwMan);
+  setTot('total-gem-naar-man',    c.transferGemMan);
+  setTot('total-gem-naar-vrouw',  c.transferGemVrouw);
+
+  // Toon/verberg overschrijvingskaarten op basis van waarde
+  const toonCard = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = val > 0 ? '' : 'none';
+  };
+  toonCard('man-bijdrage-card',    c.bijDavid);
+  toonCard('man-naar-vrouw-card',  c.transferManVrouw);
+  toonCard('vrouw-bijdrage-card',  c.bijLauren);
+  toonCard('vrouw-naar-man-card',  c.transferVrouwMan);
+  toonCard('gem-naar-man-card',    c.transferGemMan);
+  toonCard('gem-naar-vrouw-card',  c.transferGemVrouw);
+
   // Spaar cards (David + Lauren only)
   renderSpaarCardStyled('man-sparen-card',   'man',   c.davidSpaar,  c.davidSpaarAuto,  c.davidBeschikbaar, 'man');
   renderSpaarCardStyled('vrouw-sparen-card', 'vrouw', c.laurenSpaar, c.laurenSpaarAuto, c.laurenBeschikbaar, 'vrouw');
@@ -3424,7 +4096,7 @@ function recalcAll() {
     if (inp && document.activeElement !== inp) {
       const override = getSpaarOverride(rek);
       const spaar = rek === 'man' ? c.davidSpaar : c.laurenSpaar;
-      inp.value = (override !== null || spaar > 0) ? Math.round(spaar) : '';
+      inp.value = (override !== null || spaar !== 0) ? Math.round(spaar) : '';
     }
   });
 
@@ -3433,7 +4105,13 @@ function recalcAll() {
     const elIn = document.getElementById(`total-${rek}-inkomsten`);
     if (elIn) {
       let tot = 0;
-      SCHEMA[rek].inkomsten.forEach(i => { tot += parseBedrag(getValue(rek, 'inkomsten', i.key, i.persist)) || 0; });
+      SCHEMA[rek].inkomsten.forEach(i => {
+        if (i.extraInkomsten) {
+          tot += loadOverige(rek, 'inkomsten_extra_' + i.key).reduce((s, o) => s + (parseBedrag(o.bedrag) || 0), 0);
+        } else {
+          tot += parseBedrag(getValue(rek, 'inkomsten', i.key, i.persist)) || 0;
+        }
+      });
       elIn.textContent = fmt(tot);
     }
     const elUit = document.getElementById(`total-${rek}-uitgaven`);
@@ -3454,7 +4132,10 @@ function recalcAll() {
     if (ovBlock) ovBlock.textContent = fmt(calcOverigeTotal(rek, 'uitgaven'));
     // Refresh abonnementen total if visible
     const abBlock = document.getElementById(`total-abonnementen-${rek}`);
-    if (abBlock) abBlock.textContent = fmt(calcAbonnementenTotal(rek));
+    if (abBlock) {
+      const abTot = calcAbonnementenTotal(rek);
+      abBlock.textContent = abTot === 0 ? '' : fmt(abTot);
+    }
   });
 
   // === DAVID panel ===
@@ -3482,21 +4163,6 @@ function recalcAll() {
   // Render gem extra inkomsten (vrije invoer)
   renderSectionCard('gem-extra-inkomsten-card', 'gemeenschappelijk', 'inkomsten');
 
-  // Vul transfer inputvelden
-  function fillTransferInput(id, val) {
-    const el = document.getElementById(id);
-    if (el && document.activeElement !== el) el.value = val > 0 ? String(val) : '';
-  }
-  fillTransferInput('input-man-naar-vrouw',  c.transferManVrouw);
-  fillTransferInput('input-vrouw-naar-man',  c.transferVrouwMan);
-  fillTransferInput('input-gem-naar-man',    c.transferGemMan);
-  fillTransferInput('input-gem-naar-vrouw',  c.transferGemVrouw);
-  // Transfer totalen
-  const setTot = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = fmt(v); };
-  setTot('total-man-naar-vrouw',  c.transferManVrouw);
-  setTot('total-vrouw-naar-man',  c.transferVrouwMan);
-  setTot('total-gem-naar-man',    c.transferGemMan);
-  setTot('total-gem-naar-vrouw',  c.transferGemVrouw);
 
   // === OVERZICHT ===
   // Gebruik ruwe inkomsten (zonder ontvangen transfers) om dubbeltelling te vermijden.
@@ -3507,9 +4173,9 @@ function recalcAll() {
   // Sparen op gezinsniveau: beschikbaar gezin = totalIn - totalUit
   // Als één persoon een tekort heeft, compenseert dit het sparen van de ander
   const gezinBeschikbaar = totalIn - totalUit;
-  // Totaal gespaard = som van individueel sparen, maar max = gezinBeschikbaar
+  // Totaal gespaard = som van individueel sparen (kan negatief zijn)
   const totalSpaarRaw = c.davidSpaar + c.laurenSpaar;
-  const totalSpaar = Math.max(0, Math.min(totalSpaarRaw, gezinBeschikbaar));
+  const totalSpaar = Math.min(totalSpaarRaw, gezinBeschikbaar);
   const totalVrij  = gezinBeschikbaar - totalSpaar;
 
   animateAmtEl('ov-inkomsten', totalIn);
@@ -3518,8 +4184,37 @@ function recalcAll() {
   setSaldo('ov-saldo-card','ov-saldo', totalVrij);
   document.getElementById('ov-saldo-sub').textContent = totalVrij >= 0 ? 'Vrij na sparen' : 'Tekort';
 
+  // Sparen card: rood bij negatief, teal bij positief
+  const spaarNegatief = totalSpaar < 0;
+  const spaarKleur = spaarNegatief ? 'var(--danger)' : 'var(--spaar)';
+  const spaarLicht  = spaarNegatief ? 'var(--danger-light)' : 'var(--spaar-light)';
+  const spaarBorder = spaarNegatief ? 'var(--danger)' : 'var(--spaar)';
+  const spaarCard = document.getElementById('ov-sparen')?.closest('.stat-card');
+  if (spaarCard) {
+    spaarCard.style.background = spaarLicht;
+    spaarCard.style.borderColor = spaarBorder;
+    const lbl = spaarCard.querySelector('.lbl');
+    const sub = spaarCard.querySelector('.sub');
+    if (lbl) lbl.style.color = spaarKleur;
+    if (sub) sub.style.color = spaarNegatief ? 'var(--danger)' : '';
+  }
+  const spaarAmt = document.getElementById('ov-sparen');
+  if (spaarAmt) spaarAmt.style.color = spaarKleur;
+
   const spaarrate = totalIn > 0 ? Math.round((totalSpaar / totalIn) * 100) : 0;
-  document.getElementById('ov-spaarrate').textContent = spaarrate + '%';
+  const spaarrateEl = document.getElementById('ov-spaarrate');
+  if (spaarrateEl) {
+    spaarrateEl.textContent = spaarrate + '%';
+    spaarrateEl.style.color = spaarNegatief ? 'var(--danger)' : 'var(--spaar)';
+  }
+  // Spaarrate card
+  const spaarrateCard = spaarrateEl?.closest('.stat-card');
+  if (spaarrateCard) {
+    spaarrateCard.style.background = spaarNegatief ? 'var(--danger-light)' : '';
+    spaarrateCard.style.borderColor = spaarNegatief ? 'var(--danger)' : '';
+    const srLbl = spaarrateCard.querySelector('span:first-child');
+    if (srLbl) srLbl.style.color = spaarNegatief ? 'var(--danger)' : '';
+  }
 
   const pct = totalIn > 0 ? (totalUit / totalIn) * 100 : 0;
   const bar = document.getElementById('budget-bar');
@@ -3551,7 +4246,7 @@ function renderOverzichtRekeningen(c) {
                   + c.gemExtraIn;
   const totalUit  = c.davidUit + c.bijDavid + c.laurenUit + c.bijLauren - c.transferManVrouw - c.transferVrouwMan;
   const gezinBesch = totalIn - totalUit;
-  const totalSpaar= Math.max(0, Math.min(c.davidSpaar + c.laurenSpaar, gezinBesch));
+  const totalSpaar= Math.min(c.davidSpaar + c.laurenSpaar, gezinBesch);
   const totalSaldo= gezinBesch - totalSpaar;
   document.getElementById('overzicht-rekeningen').innerHTML = `
     <div class="rekening-card" style="border-color:rgba(91,111,191,0.35)">
@@ -3564,7 +4259,7 @@ function renderOverzichtRekeningen(c) {
         <div class="rek-stat">Inkomsten<span style="color:var(--income)">${fmt(c.davidIn)}</span></div>
         <div class="rek-stat">Gem. rek.<span style="color:#1A64C8">− ${fmt(c.bijDavid)}</span></div>
         <div class="rek-stat">Uitgaven<span style="color:var(--danger)">− ${fmt(c.davidUit)}</span></div>
-        <div class="rek-stat">Sparen<span style="color:var(--spaar)">${fmt(c.davidSpaar)}</span></div>
+        <div class="rek-stat">Sparen<span style="color:${c.davidSpaar < 0 ? 'var(--danger)' : 'var(--spaar)'}">${fmt(c.davidSpaar)}</span></div>
       </div>
     </div>
     <div class="rekening-card" style="border-color:rgba(192,64,122,0.3)">
@@ -3577,7 +4272,7 @@ function renderOverzichtRekeningen(c) {
         <div class="rek-stat">Inkomsten<span style="color:var(--income)">${fmt(c.laurenIn)}</span></div>
         <div class="rek-stat">Gem. rek.<span style="color:#1A64C8">− ${fmt(c.bijLauren)}</span></div>
         <div class="rek-stat">Uitgaven<span style="color:var(--danger)">− ${fmt(c.laurenUit)}</span></div>
-        <div class="rek-stat">Sparen<span style="color:var(--spaar)">${fmt(c.laurenSpaar)}</span></div>
+        <div class="rek-stat">Sparen<span style="color:${c.laurenSpaar < 0 ? 'var(--danger)' : 'var(--spaar)'}">${fmt(c.laurenSpaar)}</span></div>
       </div>
     </div>
     <div class="rekening-card" style="border-color:rgba(26,107,82,0.3)">
@@ -3601,7 +4296,7 @@ function renderOverzichtRekeningen(c) {
       <div class="rekening-body" style="grid-template-columns:1fr 1fr 1fr">
         <div class="rek-stat">Inkomsten<span style="color:var(--income);font-weight:600">${fmt(totalIn)}</span></div>
         <div class="rek-stat">Uitgaven<span style="color:var(--danger);font-weight:600">− ${fmt(totalUit)}</span></div>
-        <div class="rek-stat">Sparen<span style="color:var(--spaar);font-weight:600">${fmt(totalSpaar)}</span></div>
+        <div class="rek-stat">Sparen<span style="color:${totalSpaar < 0 ? 'var(--danger)' : 'var(--spaar)'};font-weight:600">${fmt(totalSpaar)}</span></div>
       </div>
     </div>`;
 }
@@ -4284,6 +4979,8 @@ function switchTab(tab, animate = true) {
   document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
   // Move pill
   movePill(idx);
+  // Update transfer FAB visibility
+  updateTransferFabVisibility();
 }
 
 function movePill(idx) {
@@ -4434,6 +5131,7 @@ function animateAmtEl(id, val) {
 // ===== QUICK INVOER =====
 let _quickOpen = false;
 let _quickRek = 'man'; // active rekening tab
+let _quickSelectedKey = null; // currently selected item key
 
 function toggleQuickInvoer() {
   _quickOpen ? closeQuickInvoer() : openQuickInvoer();
@@ -4444,6 +5142,10 @@ function openQuickInvoer() {
   document.getElementById('quick-backdrop').classList.add('open');
   document.getElementById('fab').classList.add('open');
   setupQuickSwipeClose();
+  closeQuickAmountPanel();
+  // Reset zoekbalk
+  const searchEl = document.getElementById('quick-search');
+  if (searchEl) searchEl.value = '';
   // Spring automatisch naar de huidige actieve tab
   const activeTab = TAB_ORDER[currentTabIdx];
   if (activeTab === 'man' || activeTab === 'vrouw' || activeTab === 'gemeenschappelijk') {
@@ -4457,14 +5159,13 @@ function closeQuickInvoer() {
   document.getElementById('quick-sheet').classList.remove('open');
   document.getElementById('quick-backdrop').classList.remove('open');
   document.getElementById('fab').classList.remove('open');
+  closeQuickAmountPanel();
 }
 
 function switchQuickTab(rek) {
   _quickRek = rek;
-  // Update tab button styles
   const colors = { man: 'var(--man)', vrouw: 'var(--vrouw)', gemeenschappelijk: 'var(--gem)' };
   const bgs    = { man: 'var(--man-light)', vrouw: 'var(--vrouw-light)', gemeenschappelijk: 'var(--gem-light)' };
-  const names  = { man: 'David', vrouw: 'Lauren', gemeenschappelijk: 'Gemeenschappelijk' };
   ['man','vrouw','gemeenschappelijk'].forEach(r => {
     const btn = document.getElementById('qtab-' + (r === 'gemeenschappelijk' ? 'gem' : r));
     if (!btn) return;
@@ -4473,125 +5174,274 @@ function switchQuickTab(rek) {
     btn.style.color       = active ? colors[r] : 'var(--muted)';
     btn.style.borderColor = active ? colors[r] : 'var(--border)';
   });
-  document.getElementById('quick-tab-name').textContent = names[rek];
-  document.getElementById('quick-tab-name').style.color = colors[rek];
+  closeQuickAmountPanel();
+  const searchEl = document.getElementById('quick-search');
+  if (searchEl) searchEl.value = '';
   renderQuickCatList();
 }
 
-// Render variabele én vaste uitgaven-items voor de geselecteerde rekening
-function renderQuickCatList() {
-  const container = document.getElementById('quick-cat-list');
-  if (!container) return;
-  const rek = _quickRek;
-  // Haal alle uitgaven-items op (geen overige, geen abonnementen)
-  const alleItems = SCHEMA[rek].uitgaven.filter(i => !i.overige && !i.abonnementen);
-  const vasteItems = alleItems.filter(i => i.tag === 'vast');
-  const varItems   = alleItems.filter(i => i.tag === 'var');
-
-  function maakRij(item) {
-    const cur = parseBedrag(getValue(rek, 'uitgaven', item.key, item.persist)) || 0;
-    return `<div class="quick-cat-row" id="qrow-${rek}-${item.key}">
-      <div class="quick-cat-label">
-        ${item.label}
-        <div class="quick-cat-sub">Huidig: <span id="qcur-${rek}-${item.key}">${fmt(cur)}</span></div>
-      </div>
-      <input class="quick-cat-input" type="text" inputmode="decimal" placeholder="+ €"
-        id="qinput-${rek}-${item.key}"
-        onkeydown="if(event.key==='Enter'){addQuickCat('${rek}','${item.key}',this);}"
-      >
-      <button onclick="addQuickCat('${rek}','${item.key}',document.getElementById('qinput-${rek}-${item.key}'))"
-        style="background:linear-gradient(135deg,var(--income),#2ECC71);color:white;border:none;border-radius:8px;padding:8px 12px;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;flex-shrink:0">＋</button>
-    </div>`;
-  }
-
-  let html = '';
-  if (vasteItems.length) {
-    html += `<div style="padding:8px 4px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Vaste uitgaven</div>`;
-    html += vasteItems.map(maakRij).join('');
-  }
-  if (varItems.length) {
-    html += `<div style="padding:10px 4px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Variabele uitgaven</div>`;
-    html += varItems.map(maakRij).join('');
-  }
-  if (!html) {
-    html = `<div style="padding:20px 0;text-align:center;color:var(--muted);font-size:14px">Geen categorieën voor deze rekening.</div>`;
-  }
-  container.innerHTML = html;
+// Extraheer emoji en tekst uit label
+function extractEmoji(label) {
+  const match = label.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|[\u{1F000}-\u{1FFFF}]|\p{So})\s*/u);
+  if (match) return { emoji: match[0].trim(), text: label.slice(match[0].length).trim() };
+  // Fallback: eerste teken als dat emoji-achtig is
+  const simpleMatch = label.match(/^([^\w\s])\s*/);
+  if (simpleMatch) return { emoji: simpleMatch[1], text: label.slice(simpleMatch[0].length).trim() };
+  return { emoji: '•', text: label };
 }
 
-// Tel een bedrag op bij een bestaande categorie
-function addQuickCat(rek, key, inputEl) {
-  const extra = parseBedrag(inputEl.value) || 0;
-  if (extra <= 0) { inputEl.focus(); return; }
-  const cur = parseBedrag(getValue(rek, 'uitgaven', key, false)) || 0;
-  const nieuw = cur + extra;
-  setValue(rek, 'uitgaven', key, String(nieuw));
-  // Update de "Huidig" label inline
-  const curEl = document.getElementById(`qcur-${rek}-${key}`);
-  if (curEl) curEl.textContent = fmt(nieuw);
-  // Flash bevestiging
-  inputEl.value = '';
-  inputEl.style.borderColor = 'var(--income)';
-  inputEl.placeholder = '✓ +' + fmt(extra);
+// ===== UNIVERSELE TEGELS =====
+// Alle tegels voor iedereen gelijk — los van SCHEMA per rekening.
+// Abonnement-subitems worden als aparte tegels opgenomen.
+// type: 'schema' = gewone uitgave (optelbaar), 'abonnement' = sub-abonnement, 'overige' = vrije invoer
+const ALLE_TEGELS = [
+  // Vaste schema-items (aanwezig bij iedereen)
+  { key:'lening_auto',    label:'🚗 Lening auto',      type:'schema', tag:'vast' },
+  { key:'pensioensparen', label:'🏦 Pensioensparen',   type:'schema', tag:'vast' },
+  { key:'lening_woning',  label:'🏡 Lening woning',    type:'schema', tag:'vast' },
+  { key:'lening_app',     label:'🏢 Lening app.',      type:'schema', tag:'vast', schemaKey:'lening_appartement' },
+  { key:'gas',            label:'🔥 Gas',              type:'schema', tag:'vast' },
+  { key:'elektriciteit',  label:'⚡ Elektriciteit',    type:'schema', tag:'vast' },
+  { key:'water',          label:'💧 Water',            type:'schema', tag:'vast' },
+  { key:'woningpolis',    label:'🏠 Woningpolis',      type:'schema', tag:'vast' },
+  { key:'gezinspolis',    label:'🛡️ Gezinspolis',      type:'schema', tag:'vast' },
+  { key:'schuldsaldo',    label:'💳 Schuldsaldo',      type:'schema', tag:'vast' },
+  { key:'kadastraal',     label:'📄 Kadastraal',       type:'schema', tag:'vast' },
+  // Variabele schema-items
+  { key:'kledij',         label:'👗 Kledij',           type:'schema', tag:'var' },
+  { key:'tanken',         label:'⛽ Tanken',           type:'schema', tag:'var' },
+  { key:'eten',           label:'🍽️ Eten',             type:'schema', tag:'var' },
+  { key:'bol',            label:'📦 Bol',              type:'schema', tag:'var' },
+  { key:'boodschappen',   label:'🛒 Boodschappen',     type:'schema', tag:'var' },
+  { key:'belastingen',    label:'📜 Belastingen',      type:'schema', tag:'var' },
+  { key:'creche',         label:'🍼 Crèche',           type:'schema', tag:'var' },
+  { key:'lias',           label:'🧸 Lias',             type:'schema', tag:'var' },
+  // Abonnement-subitems als tegels
+  { key:'netflix',        label:'🎬 Netflix',          type:'abonnement' },
+  { key:'streamz',        label:'📺 Streamz',          type:'abonnement' },
+  { key:'spotify',        label:'🎵 Spotify',          type:'abonnement' },
+  { key:'telenet',        label:'📡 Telenet',          type:'abonnement' },
+  { key:'claude',         label:'🤖 Claude AI',        type:'abonnement' },
+  { key:'microsoft',      label:'💻 Microsoft',        type:'abonnement' },
+  { key:'basicfit',       label:'💪 Basic-Fit',        type:'abonnement' },
+  { key:'ps5',            label:'🎮 PS5',              type:'abonnement' },
+  { key:'hln',            label:'📰 HLN',              type:'abonnement' },
+  // Extra vrije tegels
+  { key:'action',         label:'🏪 Action',           type:'schema', tag:'var' },
+  { key:'zalando',        label:'👟 Zalando',          type:'schema', tag:'var' },
+  { key:'poker',          label:'🃏 Poker',            type:'schema', tag:'var' },
+  { key:'games',          label:'🕹️ Games',            type:'schema', tag:'var' },
+  { key:'cadeau',         label:'🎁 Cadeau',           type:'schema', tag:'var' },
+  // Overige altijd als laatste
+  { key:'__overige__',    label:'💬 Overige',          type:'overige' },
+];
+
+// Haal het huidig bedrag op voor een tegel, voor een specifieke rekening
+function getTegelBedrag(tegel, rek) {
+  if (tegel.type === 'overige') return calcOverigeTotal(rek, 'uitgaven');
+  if (tegel.type === 'abonnement') return parseBedrag(getAbonnement(tegel.key, true, rek)) || 0;
+  // schema: check of de key in het SCHEMA van deze rek zit
+  const schemaKey = tegel.schemaKey || tegel.key;
+  const schemaItem = SCHEMA[rek].uitgaven.find(i => i.key === schemaKey);
+  if (schemaItem) return parseBedrag(getValue(rek, 'uitgaven', schemaKey, schemaItem.persist)) || 0;
+  // Key staat niet in schema van deze rek — sla op als generieke key
+  return parseBedrag(getValue(rek, 'uitgaven', tegel.key, false)) || 0;
+}
+
+// Sla bedrag op voor een tegel
+function setTegelBedrag(tegel, rek, extra) {
+  if (tegel.type === 'abonnement') {
+    const cur = parseBedrag(getAbonnement(tegel.key, true, rek)) || 0;
+    setAbonnement(tegel.key, String(cur + extra), rek);
+    return;
+  }
+  const schemaKey = tegel.schemaKey || tegel.key;
+  const cur = parseBedrag(getValue(rek, 'uitgaven', schemaKey, false)) || 0;
+  setValue(rek, 'uitgaven', schemaKey, String(cur + extra));
+}
+
+// Alle tegels voor de quick sheet
+function getAllQuickItems(rek) {
+  return ALLE_TEGELS;
+}
+
+// Render tegels
+function renderQuickCatList(filter) {
+  const container = document.getElementById('quick-cat-list');
+  const noResults = document.getElementById('quick-no-results');
+  if (!container) return;
+  const rek = _quickRek;
+  const alleItems = getAllQuickItems(rek);
+  const q = (filter || '').toLowerCase().trim();
+  const gefilterd = q ? alleItems.filter(i => i.label.toLowerCase().includes(q)) : alleItems;
+
+  if (!gefilterd.length) {
+    container.innerHTML = '';
+    if (noResults) noResults.style.display = 'block';
+    return;
+  }
+  if (noResults) noResults.style.display = 'none';
+
+  container.innerHTML = gefilterd.map(item => {
+    const curAmt = getTegelBedrag(item, rek);
+    const hasVal = curAmt > 0;
+    const { emoji, text } = extractEmoji(item.label);
+    const amtHtml = hasVal ? `<div class="quick-tile-amt">${fmt(curAmt)}</div>` : '';
+    const tileKey = item.key;
+    return `<button class="quick-tile${hasVal ? ' has-value' : ''}" id="qtile-${rek}-${tileKey}"
+      onclick="selectQuickTile('${rek}','${tileKey}')"
+      aria-label="${item.label}">
+      <div class="quick-tile-icon">${emoji}</div>
+      <div class="quick-tile-label">${text}</div>
+      ${amtHtml}
+    </button>`;
+  }).join('');
+}
+
+function filterQuickCatList(val) {
+  renderQuickCatList(val);
+}
+
+// Item geselecteerd — toon bedrag invoer paneel
+function selectQuickTile(rek, key) {
+  _quickSelectedKey = key;
+  _quickRek = rek;
+  const panel = document.getElementById('quick-amount-panel');
+  const labelEl = document.getElementById('quick-selected-label');
+  const curInfoEl = document.getElementById('quick-current-info');
+  const amtInput = document.getElementById('quick-cat-amount');
+  const notitieWrap = document.getElementById('quick-notitie-wrap');
+  const notitieInput = document.getElementById('quick-notitie');
+  if (!panel) return;
+
+  const tegel = ALLE_TEGELS.find(t => t.key === key);
+  const label = tegel ? tegel.label : key;
+  const isOverige = tegel && tegel.type === 'overige';
+  const curAmt = tegel ? getTegelBedrag(tegel, rek) : 0;
+
+  if (labelEl) labelEl.textContent = label;
+  if (curInfoEl) curInfoEl.textContent = curAmt > 0 ? `Huidig: ${fmt(curAmt)} — nieuw bedrag wordt opgeteld` : '';
+  if (amtInput) { amtInput.value = ''; amtInput.placeholder = '€0'; }
+
+  // Notitieveld alleen voor Overige
+  if (notitieWrap) notitieWrap.style.display = isOverige ? 'block' : 'none';
+  if (notitieInput) notitieInput.value = '';
+
+  panel.style.display = 'block';
   setTimeout(() => {
-    inputEl.style.borderColor = '';
-    inputEl.placeholder = '+ €';
-  }, 1200);
+    if (isOverige && notitieInput) notitieInput.focus();
+    else if (amtInput) amtInput.focus();
+  }, 80);
+}
+
+function closeQuickAmountPanel() {
+  const panel = document.getElementById('quick-amount-panel');
+  if (panel) panel.style.display = 'none';
+  const notitieWrap = document.getElementById('quick-notitie-wrap');
+  if (notitieWrap) notitieWrap.style.display = 'none';
+  const notitieInput = document.getElementById('quick-notitie');
+  if (notitieInput) notitieInput.value = '';
+  _quickSelectedKey = null;
+}
+
+function confirmQuickAmount() {
+  const rek = _quickRek;
+  const key = _quickSelectedKey;
+  const amtInput = document.getElementById('quick-cat-amount');
+  const extra = parseBedrag(amtInput ? amtInput.value : '') || 0;
+  if (extra <= 0) { if (amtInput) amtInput.focus(); return; }
+
+  const tegel = ALLE_TEGELS.find(t => t.key === key);
+
+  if (tegel && tegel.type === 'overige') {
+    const notitieInput = document.getElementById('quick-notitie');
+    const notitie = (notitieInput ? notitieInput.value.trim() : '') || 'Overige';
+    const list = loadOverige(rek, 'uitgaven');
+    list.push({ label: notitie, bedrag: String(extra) });
+    saveOverige(rek, 'uitgaven', list);
+  } else if (tegel) {
+    setTegelBedrag(tegel, rek, extra);
+  } else {
+    // Fallback
+    const cur = parseBedrag(getValue(rek, 'uitgaven', key, false)) || 0;
+    setValue(rek, 'uitgaven', key, String(cur + extra));
+  }
+
   renderAll();
   recalcAll();
+
+  // Flash de tegel
+  const tileEl = document.getElementById(`qtile-${rek}-${key}`);
+  if (tileEl) {
+    tileEl.style.background = 'var(--income-light)';
+    tileEl.style.borderColor = 'var(--income)';
+    setTimeout(() => {
+      tileEl.style.background = '';
+      tileEl.style.borderColor = '';
+      renderQuickCatList(document.getElementById('quick-search')?.value || '');
+    }, 800);
+  } else {
+    renderQuickCatList(document.getElementById('quick-search')?.value || '');
+  }
+
+  closeQuickAmountPanel();
 }
 
 function setupQuickSwipeClose() {
   const sheet = document.getElementById('quick-sheet');
   if (sheet._swipeSetup) return;
   sheet._swipeSetup = true;
-  let startY = 0, dy = 0, dragging = false;
-  const handle = document.getElementById('quick-handle');
-  const target = handle || sheet;
-  target.addEventListener('touchstart', e => {
-    startY = e.touches[0].clientY; dy = 0; dragging = false;
-  }, { passive: true });
-  document.getElementById('quick-sheet').addEventListener('touchmove', e => {
-    dy = e.touches[0].clientY - startY;
-    // Only drag if touch started near the top (handle area ~60px)
-    if (!dragging && dy > 10 && (startY < sheet.getBoundingClientRect().top + 60)) dragging = true;
-    if (dragging && dy > 0) {
-      sheet.style.transition = 'none';
+
+  let startY = 0, startSheetY = 0, dy = 0, dragging = false, touchId = null;
+
+  function onTouchStart(e) {
+    // Only initiate drag from handle area (top ~56px of sheet)
+    const touch = e.touches[0];
+    const sheetTop = sheet.getBoundingClientRect().top;
+    if (touch.clientY > sheetTop + 56) return; // below handle zone — don't drag
+    touchId = touch.identifier;
+    startY = touch.clientY;
+    dy = 0; dragging = false;
+    sheet.style.transition = 'none';
+  }
+
+  function onTouchMove(e) {
+    if (touchId === null) return;
+    const touch = Array.from(e.touches).find(t => t.identifier === touchId);
+    if (!touch) return;
+    const currentDy = touch.clientY - startY;
+    if (!dragging && currentDy > 6) { dragging = true; }
+    if (dragging && currentDy > 0) {
+      dy = currentDy;
       sheet.style.transform = `translateY(${dy}px)`;
     }
-  }, { passive: true });
-  document.getElementById('quick-sheet').addEventListener('touchend', () => {
-    if (dragging && dy > 80) {
-      sheet.style.transition = '';
-      sheet.style.transform = '';
-      closeQuickInvoer();
+  }
+
+  function onTouchEnd() {
+    if (!dragging) { touchId = null; return; }
+    sheet.style.transition = '';
+    if (dy > 80) {
+      sheet.style.transform = 'translateY(100%)';
+      setTimeout(() => {
+        sheet.style.transform = '';
+        closeQuickInvoer();
+      }, 280);
     } else {
-      sheet.style.transition = '';
       sheet.style.transform = '';
     }
-    dragging = false;
-  });
+    dy = 0; dragging = false; touchId = null;
+  }
+
+  const handle = document.getElementById('quick-handle');
+  // Listen on both handle and top of sheet
+  sheet.addEventListener('touchstart', onTouchStart, { passive: true });
+  sheet.addEventListener('touchmove',  onTouchMove,  { passive: true });
+  sheet.addEventListener('touchend',   onTouchEnd);
+  sheet.addEventListener('touchcancel',onTouchEnd);
 }
 
-function saveQuickInvoer() {
-  const rek = _quickRek;
-  const label = document.getElementById('quick-label').value.trim() || 'Vrije uitgave';
-  const bedrag = parseBedrag(document.getElementById('quick-amount').value) || 0;
-  if (bedrag <= 0) { document.getElementById('quick-amount').focus(); return; }
-  const list = loadOverige(rek, 'uitgaven');
-  list.push({ label, bedrag: String(bedrag) });
-  saveOverige(rek, 'uitgaven', list);
-  renderAll(); recalcAll();
-  const btn = document.querySelector('.quick-save-btn');
-  btn.textContent = '✅ Opgeslagen!';
-  btn.style.background = 'linear-gradient(135deg,#1E7A3E,#2ECC71)';
-  setTimeout(() => {
-    btn.textContent = '💾 Sla vrije uitgave op';
-    btn.style.background = '';
-  }, 1400);
-  document.getElementById('quick-label').value = '';
-  document.getElementById('quick-amount').value = '';
-}
+
+
 
 
 // ===== KEYBOARD NAV IN OVERIGE RIJEN =====
@@ -4836,6 +5686,7 @@ startSeizoensAnimatie();
 switchTab('overzicht', false);
 initSwipeDelete();
 requestAnimationFrame(() => movePill(0));
+updateTransferFabVisibility();
 // Firebase starten (laadt data en stelt realtime listeners in)
 initFirebase();
 
@@ -4858,16 +5709,25 @@ function updateLockUI() {
   const btn    = document.getElementById('lock-btn');
   if (banner) banner.classList.toggle('show', locked);
   if (btn)    { btn.textContent = locked ? '🔒' : '🔓'; btn.classList.toggle('locked', locked); }
-  // Lock/unlock all input fields in panels
+  // Lock/unlock all input fields in panels — but keep scrolling and navigation intact
   ['panel-overzicht','panel-man','panel-vrouw','panel-gemeenschappelijk'].forEach(id => {
     const panel = document.getElementById(id);
     if (!panel) return;
-    panel.querySelectorAll('input, textarea, button:not(.unlock-exempt)').forEach(el => {
+    // Only disable interactive input elements, not the panel itself
+    panel.querySelectorAll('input, textarea').forEach(el => {
       el.disabled = locked;
     });
-    // Visual
-    panel.style.opacity = locked ? '0.75' : '';
-    panel.style.pointerEvents = locked ? 'none' : '';
+    // Disable action buttons but keep navigation/view buttons accessible
+    panel.querySelectorAll('button').forEach(el => {
+      if (el.classList.contains('unlock-exempt')) return;
+      if (el.classList.contains('grafiek-open-btn')) return; // grafieken blijven klikbaar
+      if (el.classList.contains('rapport-btn')) {
+        // Rapport/ranking/export knoppen blijven klikbaar, reset knoppen niet
+        const onclick = el.getAttribute('onclick') || '';
+        if (onclick.includes('openRapport') || onclick.includes('openUitgavenRanking') || onclick.includes('exportMaandNaarExcel') || onclick.includes('openGrafiekOverlay')) return;
+      }
+      el.disabled = locked;
+    });
   });
   // Always keep unlock banner button clickable
   const unlockBtns = document.querySelectorAll('.unlock-exempt');
@@ -4997,8 +5857,8 @@ function renderJaarTab() {
     laurenUit2 += transferVrouwMan;
     const davidBesch  = davidIn  - bijDavid  - davidUit2;
     const laurenBesch = laurenIn - bijLauren - laurenUit2;
-    const davidSpaar  = (davidOv  !== undefined && davidOv  !== null && davidOv  !== '') ? parseBedrag(davidOv)  : Math.max(0, davidBesch);
-    const laurenSpaar = (laurenOv !== undefined && laurenOv !== null && laurenOv !== '') ? parseBedrag(laurenOv) : Math.max(0, laurenBesch);
+    const davidSpaar  = (davidOv  !== undefined && davidOv  !== null && davidOv  !== '') ? parseBedrag(davidOv)  : davidBesch;
+    const laurenSpaar = (laurenOv !== undefined && laurenOv !== null && laurenOv !== '') ? parseBedrag(laurenOv) : laurenBesch;
     tSpaar = davidSpaar + laurenSpaar;
 
     const saldo = tIn - tUit - tSpaar;
@@ -5119,8 +5979,8 @@ function exportNaarCSV() {
     SCHEMA.vrouw.inkomsten.forEach(i => { laurenIn2 += parseBedrag(data.vrouw?.inkomsten?.[i.key]) || 0; });
     SCHEMA.man.uitgaven.forEach(i => { if (!i.overige && !i.abonnementen) davidUit2  += parseBedrag(data.man?.uitgaven?.[i.key]) || 0; else if (i.abonnementen) getAbonnementenItems('man').forEach(ab => { davidUit2  += parseBedrag(data.man?.abonnementen?.[ab.key]) || 0; }); });
     SCHEMA.vrouw.uitgaven.forEach(i => { if (!i.overige && !i.abonnementen) laurenUit2 += parseBedrag(data.vrouw?.uitgaven?.[i.key]) || 0; else if (i.abonnementen) getAbonnementenItems('vrouw').forEach(ab => { laurenUit2 += parseBedrag(data.vrouw?.abonnementen?.[ab.key]) || 0; }); });
-    const ds = (davidOv !== undefined && davidOv !== null && davidOv !== '') ? parseBedrag(davidOv) : Math.max(0, davidIn2 - bijDavid - davidUit2);
-    const ls = (laurenOv !== undefined && laurenOv !== null && laurenOv !== '') ? parseBedrag(laurenOv) : Math.max(0, laurenIn2 - bijLauren - laurenUit2);
+    const ds = (davidOv !== undefined && davidOv !== null && davidOv !== '') ? parseBedrag(davidOv) : davidIn2 - bijDavid - davidUit2;
+    const ls = (laurenOv !== undefined && laurenOv !== null && laurenOv !== '') ? parseBedrag(laurenOv) : laurenIn2 - bijLauren - laurenUit2;
     tSpaar = ds + ls;
     const saldo = tIn - tUit - tSpaar;
     const notitie = localStorage.getItem(sessionKey('notitie_' + currentYear + '-' + String(m+1).padStart(2,'0'))) || '';
