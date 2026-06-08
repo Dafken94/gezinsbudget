@@ -381,11 +381,22 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 
 .stat-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border-strong);
   border-radius: var(--radius);
   padding: 13px 15px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 6px rgba(26,18,16,0.07);
+  position: relative;
+  overflow: hidden;
 }
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: rgba(255,255,255,0.7);
+  pointer-events: none;
+}
+[data-theme="dark"] .stat-card::before { background: rgba(255,255,255,0.06); }
 .stat-card.full { grid-column: 1 / -1; }
 .stat-card .lbl {
   font-size: 10px;
@@ -416,9 +427,9 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 .stat-card.expense { background: var(--rose-light) !important; border-color: var(--rose-mid) !important; }
 .stat-card.expense .lbl { color: var(--rose) !important; }
 .stat-card.expense .amt { color: var(--rose); }
-.stat-card.spaar   { background: var(--teal-light) !important; border-color: rgba(14,122,106,0.25) !important; }
-.stat-card.spaar .lbl { color: var(--teal) !important; }
-.stat-card.spaar .amt { color: var(--teal); }
+.stat-card.spaar   { background: var(--green-light) !important; border-color: var(--green-mid) !important; }
+.stat-card.spaar .lbl { color: var(--green) !important; }
+.stat-card.spaar .amt { color: var(--green); }
 .stat-card.balance.positive .amt { color: var(--green); }
 .stat-card.balance.negative .amt { color: var(--rose); }
 
@@ -486,11 +497,11 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 /* ── SECTION CARDS ── */
 .section-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border-strong);
   border-radius: var(--radius);
   overflow: hidden;
   margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 6px rgba(26,18,16,0.07);
 }
 .section-hdr {
   padding: 12px 16px;
@@ -516,9 +527,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 .section-card.is-uitgaven  { border-color: var(--rose-mid) !important; }
 .section-card.is-uitgaven  .section-hdr { background: var(--rose-light);  color: var(--rose);  border-bottom-color: rgba(200,57,74,0.15); }
 .section-card.is-uitgaven  .section-hdr .total { color: var(--rose); }
-.section-card.is-gem       { border-color: var(--gem-mid) !important; }
-.section-card.is-gem       .section-hdr { background: var(--gem-light);   color: var(--gem);   border-bottom-color: rgba(25,122,69,0.15); }
-.section-card.is-gem       .section-hdr .total { color: var(--gem); }
+.section-card.is-gem       { }
 
 /* ── BUDGET ROW ── */
 .budget-row {
@@ -885,11 +894,11 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 /* ── CHARTS ── */
 .chart-wrap {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border-strong);
   border-radius: var(--radius);
   padding: 14px 16px;
   margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 6px rgba(26,18,16,0.07);
 }
 .chart-title {
   font-size: 12px;
@@ -918,8 +927,8 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 }
 .bar-group.current .bar-lbl { color: var(--rose); font-weight: 700; }
 .bar-pair { display: flex; align-items: flex-end; gap: 2px; }
-.bar-in  { width: 7px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg,#3EBB76,#197A45); flex-shrink:0; }
-.bar-out { width: 7px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg,#E05060,#C8394A); flex-shrink:0; }
+.bar-in  { width: 7px; border-radius: 3px 3px 0 0; background: var(--green); flex-shrink:0; }
+.bar-out { width: 7px; border-radius: 3px 3px 0 0; background: var(--rose); flex-shrink:0; }
 .bar-lbl { font-size: 9px; color: var(--text-3); margin-top: 4px; text-align: center; }
 
 .chart-legend {
@@ -961,11 +970,11 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 /* ── REKENING CARDS (overzicht) ── */
 .rekening-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border-strong);
   border-radius: var(--radius);
   overflow: hidden;
   margin-bottom: 10px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 6px rgba(26,18,16,0.07);
 }
 .rekening-hdr {
   display: flex;
@@ -1140,7 +1149,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 .fab {
   width: 52px; height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--rose), #8B4FE0);
+  background: linear-gradient(145deg, rgba(255,255,255,0.25) 0%, var(--rose) 40%, #8B4FE0 100%);
   color: white;
   border: none;
   font-size: 24px;
@@ -1149,12 +1158,25 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(200,57,74,0.40);
+  box-shadow: 0 6px 0 rgba(100,20,80,0.35), 0 8px 20px rgba(200,57,74,0.40), inset 0 1px 3px rgba(255,255,255,0.45);
   z-index: 90;
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
   flex-shrink: 0;
+  position: relative;
 }
-.fab:active { transform: scale(0.92); box-shadow: 0 2px 8px rgba(200,57,74,0.25); }
+.fab::after {
+  content: '';
+  position: absolute;
+  top: 8%; left: 15%; right: 35%;
+  height: 28%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+}
+.fab:active {
+  transform: translateY(4px) scale(0.97);
+  box-shadow: 0 2px 0 rgba(100,20,80,0.35), 0 3px 8px rgba(200,57,74,0.25), inset 0 1px 3px rgba(255,255,255,0.3);
+}
 .fab.open { transform: rotate(45deg); }
 #fab-container {
   transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
@@ -1196,7 +1218,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   gap: 4px;
   padding: 10px 6px 9px;
   background: var(--surface);
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--border-strong);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s, transform 0.1s;
@@ -1206,8 +1228,9 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   align-self: start;
   position: relative;
   user-select: none;
+  box-shadow: 0 2px 0 var(--border-strong), 0 3px 6px rgba(26,18,16,0.08);
 }
-.quick-tile:active { transform: scale(0.95); background: var(--rose-light); }
+.quick-tile:active { transform: translateY(2px); box-shadow: 0 0 0 var(--border-strong); }
 .quick-tile.has-value { border-color: var(--rose); background: var(--rose-light); }
 .quick-tile-icon  { font-size: 20px; line-height: 1.2; }
 .quick-tile-label { font-size: 10px; font-weight: 600; color: var(--text); line-height: 1.2; word-break: break-word; }
@@ -1548,7 +1571,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 .ranking-bar-fill {
   height: 100%;
   border-radius: 5px;
-  background: linear-gradient(90deg, var(--rose), #E05060);
+  background: var(--rose);
   transition: width 0.4s ease;
 }
 .ranking-bar-amt {
@@ -1733,8 +1756,8 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
 
 /* Compacte tegel */
 .rtile {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
+  background: linear-gradient(160deg, var(--surface) 0%, var(--bg) 100%);
+  border: 1.5px solid var(--border-strong);
   border-radius: var(--radius-sm);
   padding: 9px 8px 8px;
   display: flex;
@@ -1748,11 +1771,29 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
   -webkit-user-select: none;
   min-height: 72px;
   justify-content: center;
-  transition: opacity 0.12s;
+  transition: transform 0.1s, box-shadow 0.1s;
   position: relative;
+  box-shadow: 0 2px 0 var(--border-strong), 0 3px 6px rgba(26,18,16,0.10);
 }
-.rtile:active { opacity: 0.7; }
-.rtile.rtile-has { box-shadow: var(--shadow-sm); }
+.rtile:active {
+  transform: translateY(2px);
+  box-shadow: 0 0px 0 var(--border-strong), 0 1px 3px rgba(26,18,16,0.08);
+}
+.rtile.rtile-has {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--surface) 60%, transparent) 0%, var(--bg) 100%);
+  box-shadow: 0 2px 0 var(--border-strong), 0 4px 8px rgba(26,18,16,0.12);
+}
+.rtile.rtile-has::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 40%;
+  border-radius: calc(var(--radius-sm) - 2px) calc(var(--radius-sm) - 2px) 0 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+}
+[data-theme="dark"] .rtile { background: linear-gradient(160deg, var(--surface) 0%, var(--surface-alt) 100%); }
+[data-theme="dark"] .rtile.rtile-has { background: linear-gradient(160deg, var(--surface) 0%, var(--surface-alt) 100%); }
 
 .rtile-icon {
   font-size: 20px;
@@ -1815,7 +1856,7 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
 #gem-naar-vrouw-card {
   display: none !important;
 }
-#gem-extra-inkomsten-card { display: none !important; }
+#gem-extra-inkomsten-card { }
 .quick-hidden { visibility: hidden !important; pointer-events: none !important; }
 </style>
 </head>
@@ -1862,20 +1903,7 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
             <div class="amt" id="ov-uitgaven">€0</div>
             <div class="sub">Alle rekeningen</div>
           </div>
-          <div class="stat-card" style="border-color:var(--teal);background:var(--teal-light);grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:12px 18px">
-            <div>
-              <div class="lbl" style="color:var(--teal)">Sparen</div>
-              <div class="sub" style="margin-top:4px">David + Lauren</div>
-            </div>
-            <div class="amt" id="ov-sparen" style="color:var(--teal);font-size:24px">€0</div>
-          </div>
           <div style="display:none" id="ov-saldo-card"><span id="ov-saldo"></span><span id="ov-saldo-sub"></span></div>
-        </div>
-        <div class="stat-row" style="margin-top:-4px">
-          <div class="stat-card" style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:12px 18px">
-            <span style="font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-2);font-weight:600">Spaarrate</span>
-            <span class="amt" id="ov-spaarrate" style="color:var(--teal);font-family:var(--font-display);font-size:22px">0%</span>
-          </div>
         </div>
 
         <div class="budget-bar-wrap">
@@ -1929,8 +1957,8 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
           </div>
           <div class="bar-chart grafiek-btn-chart" id="bar-chart" style="height:64px;pointer-events:none;width:100%"></div>
           <div class="chart-legend" style="margin-top:6px;pointer-events:none">
-            <span><span class="leg-dot" style="background:var(--green-light);border:1px solid var(--green)"></span>Inkomsten</span>
-            <span><span class="leg-dot" style="background:var(--rose-light);border:1px solid var(--rose)"></span>Uitgaven</span>
+            <span><span class="leg-dot" style="background:var(--green)"></span>Inkomsten</span>
+            <span><span class="leg-dot" style="background:var(--rose)"></span>Uitgaven</span>
           </div>
         </button>
 
@@ -1974,23 +2002,17 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
       <div class="panel-inner">
         <div class="person-banner david" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;align-items:center;gap:8px"><span>💙</span> David</div><div style="font-size:11px;font-weight:400;opacity:0.7;letter-spacing:0.02em;font-family:monospace">BE19 7360 5165 7012</div></div>
         <div class="stat-row three">
-          <div class="stat-card" style="background:linear-gradient(145deg,var(--david-light),#E0E6FA) !important;border-color:rgba(91,111,191,0.3) !important">
-            <div class="lbl" style="color:var(--david)">Inkomsten</div>
-            <div class="amt" id="man-inkomsten" style="color:var(--david)">€0</div>
+          <div class="stat-card income">
+            <div class="lbl">Inkomsten</div>
+            <div class="amt" id="man-inkomsten">€0</div>
           </div>
-          <div class="stat-card" style="background:linear-gradient(145deg,var(--blue-light),#C8DCF5) !important;border-color:rgba(26,100,200,0.25) !important">
+          <div class="stat-card" style="background:var(--blue-light) !important;border-color:var(--blue-mid) !important">
             <div class="lbl" style="color:var(--blue)">Gem. rekening</div>
             <div class="amt" id="man-bijdrage" style="color:var(--blue)">€0</div>
           </div>
           <div class="stat-card expense">
             <div class="lbl">Uitgaven</div>
             <div class="amt" id="man-uitgaven">€0</div>
-          </div>
-        </div>
-        <div class="stat-row" style="margin-top:-4px">
-          <div class="stat-card" style="background:linear-gradient(145deg,#D0E8F5,#C0DCF0);border-color:rgba(26,106,154,0.3);grid-column:1/-1">
-            <div class="lbl" style="color:#1A6A9A">Sparen</div>
-            <div class="amt" id="man-sparen-stat" style="color:#1A6A9A">€0</div>
           </div>
         </div>
         <div style="display:none" id="man-saldo-card"><span id="man-saldo"></span></div>
@@ -2055,23 +2077,17 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
       <div class="panel-inner">
         <div class="person-banner lauren" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;align-items:center;gap:8px"><span>🌺</span> Lauren</div><div style="font-size:11px;font-weight:400;opacity:0.7;letter-spacing:0.02em;font-family:monospace">BE97 0015 5239 2949</div></div>
         <div class="stat-row three">
-          <div class="stat-card" style="background:linear-gradient(145deg,var(--rose-light),#FAE0EE) !important;border-color:rgba(192,64,122,0.3) !important">
-            <div class="lbl" style="color:var(--lauren)">Inkomsten</div>
-            <div class="amt" id="vrouw-inkomsten" style="color:var(--lauren)">€0</div>
+          <div class="stat-card income">
+            <div class="lbl">Inkomsten</div>
+            <div class="amt" id="vrouw-inkomsten">€0</div>
           </div>
-          <div class="stat-card" style="background:linear-gradient(145deg,var(--blue-light),#C8DCF5) !important;border-color:rgba(26,100,200,0.25) !important">
+          <div class="stat-card" style="background:var(--blue-light) !important;border-color:var(--blue-mid) !important">
             <div class="lbl" style="color:var(--blue)">Gem. rekening</div>
             <div class="amt" id="vrouw-bijdrage" style="color:var(--blue)">€0</div>
           </div>
           <div class="stat-card expense">
             <div class="lbl">Uitgaven</div>
             <div class="amt" id="vrouw-uitgaven">€0</div>
-          </div>
-        </div>
-        <div class="stat-row" style="margin-top:-4px">
-          <div class="stat-card" style="background:var(--teal-light);border-color:var(--teal);grid-column:1/-1">
-            <div class="lbl" style="color:var(--teal)">Sparen</div>
-            <div class="amt" id="vrouw-sparen-stat" style="color:var(--teal)">€0</div>
           </div>
         </div>
         <div style="display:none" id="vrouw-saldo-card"><span id="vrouw-saldo"></span></div>
@@ -2135,19 +2151,20 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
     <div class="panel" id="panel-gemeenschappelijk">
       <div class="panel-inner">
         <div class="person-banner gem" style="flex-direction:column;align-items:flex-start;gap:2px"><div style="display:flex;align-items:center;gap:8px"><span>🏡</span> Gemeenschappelijk</div><div style="font-size:11px;font-weight:400;opacity:0.7;letter-spacing:0.02em;font-family:monospace">BE19 7330 5863 4712</div></div>
-        <div class="stat-row">
-          <div class="stat-card" style="background:linear-gradient(145deg,var(--gem-light),#D0EEE4) !important;border-color:rgba(26,107,82,0.3) !important">
-            <div class="lbl" style="color:var(--gem)">Ontvangen bijdragen</div>
-            <div class="amt" id="gem-inkomsten" style="color:var(--gem)">€0</div>
+        <div class="stat-row three">
+          <div class="stat-card income">
+            <div class="lbl">Inkomsten</div>
+            <div class="amt" id="gem-inkomsten">€0</div>
             <div class="sub">Bijdragen David & Lauren</div>
+          </div>
+          <div class="stat-card" style="background:var(--blue-light);border-color:var(--blue-mid)">
+            <div class="lbl" style="color:var(--blue)">Overschrijvingen</div>
+            <div class="amt" id="gem-overschrijvingen" style="color:var(--blue)">€0</div>
+            <div class="sub">Naar David & Lauren</div>
           </div>
           <div class="stat-card expense">
             <div class="lbl">Uitgaven</div>
             <div class="amt" id="gem-uitgaven">€0</div>
-          </div>
-          <div class="stat-card balance full" id="gem-saldo-card" style="border-color:rgba(26,107,82,0.25)">
-            <div class="lbl" style="color:var(--gem)">Saldo gemeenschappelijk</div>
-            <div class="amt" id="gem-saldo">€0</div>
           </div>
         </div>
         <div id="alert-gem" class="alert"></div>
@@ -2155,6 +2172,7 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
         <!-- Extra inkomsten gemeenschappelijk -->
         <div id="gem-extra-inkomsten-card" class="section-card"></div>
         <div id="gem-uitgaven-card" class="section-card"></div>
+        <div id="gem-saldo-card" class="spaar-section-card"></div>
         <div id="gem-transfer-tiles" class="section-card" style="display:none"></div>
         <!-- Overschrijvingen vanuit gem. rekening -->
         <div id="gem-naar-man-card" class="bijdrage-section-card" style="background:linear-gradient(145deg,var(--david-light),#E8ECFA);border-color:rgba(91,111,191,0.3);display:none">
@@ -2693,6 +2711,17 @@ function setAbonnement(key, val, rek) {
   rek = rek || 'gemeenschappelijk';
   setValue(rek, 'abonnementen', key, val);
 }
+function addToAbonnement(key, rek, panelId) {
+  rek = rek || 'gemeenschappelijk';
+  const inp = document.getElementById('ab-add-inp-' + rek + '-' + key);
+  if (!inp) return;
+  const extra = parseBedrag(inp.value) || 0;
+  if (extra <= 0) { inp.focus(); return; }
+  const cur = parseBedrag(getAbonnement(key, false, rek)) || 0;
+  setAbonnement(key, String(cur + extra), rek);
+  inp.value = '';
+  renderAll(); recalcAll();
+}
 function calcAbonnementenTotal(rek) {
   rek = rek || 'gemeenschappelijk';
   return getAbonnementenItems(rek).reduce((s, i) => {
@@ -2848,7 +2877,10 @@ function renderQuickIncomeList(filter) {
 
   if (noResults) noResults.style.display = 'none';
 
-  const toRenderInk = q ? ALLE_INKOMSTEN_TEGELS.filter(t => t.label.toLowerCase().includes(q)) : ALLE_INKOMSTEN_TEGELS;
+  const toRenderInk = (q
+    ? ALLE_INKOMSTEN_TEGELS.filter(t => t.label.toLowerCase().includes(q))
+    : ALLE_INKOMSTEN_TEGELS
+  ).filter(t => rek !== 'gemeenschappelijk' || t.type === 'extra_inkomsten');
 
   if (q && toRenderInk.length === 0) {
     container.innerHTML = '';
@@ -3336,6 +3368,27 @@ function heeftVasteItemsVorigeMaand() {
         }
       }
     }
+    // Cross-rek inkomsten
+    for (const tegel of ALLE_INKOMSTEN_TEGELS) {
+      if (tegel.type === 'extra_inkomsten') continue;
+      if (SCHEMA[rek] && SCHEMA[rek].inkomsten && SCHEMA[rek].inkomsten.some(i => i.key === tegel.key)) continue;
+      const vv = prevVV[rek + '_inkomsten_' + tegel.key] || (tegel.tag === 'vast' ? 'vast' : 'var');
+      if (vv === 'vast') {
+        const val = prevData[rek] && prevData[rek].inkomsten ? prevData[rek].inkomsten[tegel.key] : undefined;
+        if (val !== undefined && val !== '' && parseBedrag(val) > 0) return true;
+      }
+    }
+    // Cross-rek uitgaven
+    for (const tegel of ALLE_TEGELS) {
+      if (tegel.type === 'overige' || tegel.type === 'abonnement') continue;
+      const sk = tegel.schemaKey || tegel.key;
+      if (SCHEMA[rek] && SCHEMA[rek].uitgaven && SCHEMA[rek].uitgaven.some(i => (i.key === sk || i.key === tegel.key) && !i.abonnementen && !i.overige)) continue;
+      const vv = prevVV[rek + '_uitgaven_' + sk] || (tegel.tag === 'vast' ? 'vast' : 'var');
+      if (vv === 'vast') {
+        const val = prevData[rek] && prevData[rek].uitgaven ? prevData[rek].uitgaven[sk] : undefined;
+        if (val !== undefined && val !== '' && parseBedrag(val) > 0) return true;
+      }
+    }
   }
   return false;
 }
@@ -3407,7 +3460,44 @@ function kopieerVasteItemsVanVorigeMaand() {
     }
   }
 
-  // Kopieer ook bijdrage gem. rekening als die als vast gemarkeerd was
+  // Kopieer ook cross-rek items (ingevoerd via PAW, niet in schema van die rek)
+  for (const rek of REKENINGEN) {
+    // Cross-rek inkomsten
+    ALLE_INKOMSTEN_TEGELS.forEach(tegel => {
+      if (tegel.type === 'extra_inkomsten') return;
+      const inSchema = SCHEMA[rek] && SCHEMA[rek].inkomsten && SCHEMA[rek].inkomsten.some(i => i.key === tegel.key);
+      if (inSchema) return;
+      const mapKey = rek + '_inkomsten_' + tegel.key;
+      const prevVastVar = prevVV[mapKey] || (tegel.tag === 'vast' ? 'vast' : 'var');
+      if (prevVastVar !== 'vast') return;
+      const prevVal = prevData[rek] && prevData[rek].inkomsten ? prevData[rek].inkomsten[tegel.key] : undefined;
+      if (prevVal === undefined || prevVal === '' || parseBedrag(prevVal) === 0) return;
+      if (!curData[rek]) curData[rek] = {};
+      if (!curData[rek].inkomsten) curData[rek].inkomsten = {};
+      curData[rek].inkomsten[tegel.key] = prevVal;
+      curVV[mapKey] = 'vast';
+      copied++;
+    });
+    // Cross-rek uitgaven
+    ALLE_TEGELS.forEach(tegel => {
+      if (tegel.type === 'overige' || tegel.type === 'abonnement') return;
+      const sk = tegel.schemaKey || tegel.key;
+      const inSchema = SCHEMA[rek] && SCHEMA[rek].uitgaven && SCHEMA[rek].uitgaven.some(i => (i.key === sk || i.key === tegel.key) && !i.abonnementen && !i.overige);
+      if (inSchema) return;
+      const mapKey = rek + '_uitgaven_' + sk;
+      const prevVastVar = prevVV[mapKey] || (tegel.tag === 'vast' ? 'vast' : 'var');
+      if (prevVastVar !== 'vast') return;
+      const prevVal = prevData[rek] && prevData[rek].uitgaven ? prevData[rek].uitgaven[sk] : undefined;
+      if (prevVal === undefined || prevVal === '' || parseBedrag(prevVal) === 0) return;
+      if (!curData[rek]) curData[rek] = {};
+      if (!curData[rek].uitgaven) curData[rek].uitgaven = {};
+      curData[rek].uitgaven[sk] = prevVal;
+      curVV[mapKey] = 'vast';
+      copied++;
+    });
+  }
+
+
   for (const rek of ['man', 'vrouw']) {
     const bijKey = 'transfer_bijdrage_' + rek + '_';
     const prevVV2 = curVV['transfer_bijdrage_' + rek + '_'] || 'vast'; // bijdragen zijn altijd vast
@@ -3573,12 +3663,16 @@ function renderSectionCard(containerId, rek, type) {
         return `<div class="overige-sub-row">
           <div class="overige-sub-row-inner" style="align-items:center">
             <span style="font-size:15px;flex-shrink:0">${ae}</span>
-            <span class="overige-notitie-input" style="border:none;background:none;padding:0;font-size:13px;color:var(--text)">${at}</span>
-            <input class="overige-bedrag-input" type="text" inputmode="decimal" value="${v}" placeholder="0"
-              onchange="setAbonnement('${ab.key}',this.value,'${rek}')"
-              oninput="setAbonnement('${ab.key}',this.value,'${rek}')">
+            <span class="overige-notitie-input" style="border:none;background:none;padding:0;font-size:13px;color:var(--text);flex:1">${at}</span>
+            <span style="font-size:13px;font-weight:600;color:var(--rose);min-width:48px;text-align:right">${fmt(v)}</span>
           </div>
-          <button class="overige-del-btn" onclick="setAbonnement('${ab.key}','0','${rek}');renderAll();recalcAll()">🗑</button>
+          <div style="display:flex;gap:4px;align-items:center;margin-top:4px;padding-left:26px">
+            <input class="overige-bedrag-input" type="text" inputmode="decimal" id="ab-add-inp-${rek}-${ab.key}" placeholder="Voeg toe…"
+              onkeydown="if(event.key==='Enter')addToAbonnement('${ab.key}','${rek}','${panelId}')"
+              style="flex:1">
+            <button class="row-plus-btn" onclick="addToAbonnement('${ab.key}','${rek}','${panelId}')" title="Bijvullen" style="flex-shrink:0">＋</button>
+            <button class="overige-del-btn" onclick="setAbonnement('${ab.key}','0','${rek}');renderAll();recalcAll()">🗑</button>
+          </div>
         </div>`;
       }).join('');
 
@@ -3591,17 +3685,6 @@ function renderSectionCard(containerId, rek, type) {
 
       panels.push(`<div class="tile-panel" id="${panelId}" style="display:none">
         ${abSubTiles}
-        <div style="border-top:1px solid var(--border)">
-          ${getAbonnementenItems(rek).map(ab => {
-            const v = getAbonnement(ab.key, ab.persist, rek);
-            return `<div class="budget-row" style="padding-left:20px;min-height:40px">
-              <span class="row-label" style="font-size:13px">${ab.label}</span>
-              <input class="row-input" type="text" inputmode="decimal" value="${v}" placeholder="0" style="width:76px"
-                onchange="setAbonnement('${ab.key}',this.value,'${rek}')"
-                oninput="setAbonnement('${ab.key}',this.value,'${rek}')">
-            </div>`;
-          }).join('')}
-        </div>
       </div>`);
       return;
     }
@@ -3670,10 +3753,9 @@ function renderSectionCard(containerId, rek, type) {
         </div>
       </div>
       <div style="padding:0 14px 12px;display:flex;gap:8px">
-        <input type="text" inputmode="decimal" id="${panelId}-inp" placeholder="Huidig: ${fmt(v)} — voer nieuw bedrag in"
+        <input type="text" inputmode="decimal" id="${panelId}-inp" placeholder="Voeg extra bedrag toe…"
           style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text);-webkit-appearance:none"
-          onchange="if(this.value)setValue('${rek}','${type}','${item.key}',this.value);renderAll();recalcAll()"
-          oninput="if(this.value)setValue('${rek}','${type}','${item.key}',this.value)">
+          onkeydown="if(event.key==='Enter')addValueFromTile('${rek}','${type}','${item.key}','${panelId}')">
         <button onclick="addValueFromTile('${rek}','${type}','${item.key}','${panelId}')"
           style="padding:9px 14px;background:${posColor};color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0">＋</button>
       </div>
@@ -3691,19 +3773,26 @@ function renderSectionCard(containerId, rek, type) {
       if (v === 0) return;
       const {emoji, text} = extractEmoji(tegel.label);
       const panelId = 'tile-panel-' + rek + '-inkomsten-' + tegel.key;
+      const inkSchemaItem = { key: tegel.key, tag: tegel.tag || 'var' };
+      const inkVastVarBadge = vastVarBadgeHtml(inkSchemaItem, rek, 'inkomsten');
+      const inkVastDot = resolveVastVar(inkSchemaItem, rek, 'inkomsten') === 'vast' ? '<span style="font-size:8px;opacity:0.6;margin-top:1px">📌</span>' : '';
       tiles.push('<div class="rtile rtile-has" onclick="toggleTilePanel(\'' + panelId + '\')" style="border-color:var(--green-mid);background:var(--green-light)">'
         + '<div class="rtile-icon">' + emoji + '</div>'
         + '<div class="rtile-label">' + text + '</div>'
         + '<div class="rtile-amt" style="color:var(--green)">' + fmt(v) + '</div>'
+        + inkVastDot
         + '<div class="rtile-chev" id="' + panelId + '-chevron">⌄</div>'
         + '</div>');
       panels.push('<div class="tile-panel" id="' + panelId + '" style="display:none">'
         + '<div style="padding:10px 14px;display:flex;gap:8px;align-items:center">'
           + '<span style="font-size:13px;color:var(--text-2)">Huidig: <strong style="color:var(--green)">' + fmt(v) + '</strong></span>'
-          + '<button class="overige-del-btn" style="margin-left:auto" onclick="setValue(\'' + rek + '\',\'inkomsten\',\'' + tegel.key + '\',\'0\');closeTilePanel(\'' + panelId + '\');renderAll();recalcAll()">🗑</button>'
+          + '<div style="display:flex;gap:6px;align-items:center;margin-left:auto">'
+            + inkVastVarBadge
+            + '<button class="overige-del-btn" onclick="setValue(\'' + rek + '\',\'inkomsten\',\'' + tegel.key + '\',\'0\');closeTilePanel(\'' + panelId + '\');renderAll();recalcAll()">🗑</button>'
+          + '</div>'
         + '</div>'
         + '<div style="padding:0 14px 12px;display:flex;gap:8px">'
-          + '<input type="text" inputmode="decimal" id="' + panelId + '-inp" placeholder="Huidig: ' + fmt(v) + '" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text);-webkit-appearance:none">'
+          + '<input type="text" inputmode="decimal" id="' + panelId + '-inp" placeholder="Voeg extra bedrag toe…" onkeydown="if(event.key===\'Enter\')addValueFromTileKey(\'' + rek + '\',\'inkomsten\',\'' + tegel.key + '\',\'' + panelId + '\')" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text);-webkit-appearance:none">'
           + '<button onclick="addValueFromTileKey(\'' + rek + '\',\'inkomsten\',\'' + tegel.key + '\',\'' + panelId + '\')" style="padding:9px 14px;background:var(--green);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0">＋</button>'
         + '</div>'
         + '</div>');
@@ -3720,19 +3809,26 @@ function renderSectionCard(containerId, rek, type) {
       if (v === 0) return;
       const {emoji, text} = extractEmoji(tegel.label);
       const panelId = 'tile-panel-' + rek + '-uitgaven-xrek-' + sk;
+      const schemaItem = { key: sk, tag: tegel.tag || 'var' };
+      const vastVarBadge = vastVarBadgeHtml(schemaItem, rek, 'uitgaven');
+      const vastDotXrek = resolveVastVar(schemaItem, rek, 'uitgaven') === 'vast' ? '<span style="font-size:8px;opacity:0.6;margin-top:1px">📌</span>' : '';
       tiles.push('<div class="rtile rtile-has" onclick="toggleTilePanel(\'' + panelId + '\')" style="border-color:var(--rose-mid);background:var(--rose-light)">'
         + '<div class="rtile-icon">' + emoji + '</div>'
         + '<div class="rtile-label">' + text + '</div>'
         + '<div class="rtile-amt" style="color:var(--rose)">' + fmt(v) + '</div>'
+        + vastDotXrek
         + '<div class="rtile-chev" id="' + panelId + '-chevron">⌄</div>'
         + '</div>');
       panels.push('<div class="tile-panel" id="' + panelId + '" style="display:none">'
         + '<div style="padding:10px 14px;display:flex;gap:8px;align-items:center">'
           + '<span style="font-size:13px;color:var(--text-2)">Huidig: <strong style="color:var(--rose)">' + fmt(v) + '</strong></span>'
-          + '<button class="overige-del-btn" style="margin-left:auto" onclick="setValue(\'' + rek + '\',\'uitgaven\',\'' + sk + '\',\'0\');closeTilePanel(\'' + panelId + '\');renderAll();recalcAll()">🗑</button>'
+          + '<div style="display:flex;gap:6px;align-items:center;margin-left:auto">'
+            + vastVarBadge
+            + '<button class="overige-del-btn" onclick="setValue(\'' + rek + '\',\'uitgaven\',\'' + sk + '\',\'0\');closeTilePanel(\'' + panelId + '\');renderAll();recalcAll()">🗑</button>'
+          + '</div>'
         + '</div>'
         + '<div style="padding:0 14px 12px;display:flex;gap:8px">'
-          + '<input type="text" inputmode="decimal" id="' + panelId + '-inp" placeholder="Huidig: ' + fmt(v) + '" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text);-webkit-appearance:none">'
+          + '<input type="text" inputmode="decimal" id="' + panelId + '-inp" placeholder="Voeg extra bedrag toe…" onkeydown="if(event.key===\'Enter\')addValueFromTileKey(\'' + rek + '\',\'uitgaven\',\'' + sk + '\',\'' + panelId + '\')" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;background:var(--bg);color:var(--text);-webkit-appearance:none">'
           + '<button onclick="addValueFromTileKey(\'' + rek + '\',\'uitgaven\',\'' + sk + '\',\'' + panelId + '\')" style="padding:9px 14px;background:var(--rose);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0">＋</button>'
         + '</div>'
         + '</div>');
@@ -3810,7 +3906,7 @@ function addTileNotitie(rek, listKey) {
     if (row) { const inp = row.querySelector('input'); if (inp) inp.focus(); }
   }, 60);
 }
-// Render gem inkomsten (readonly, auto-filled)
+// Render gem inkomsten (bijdragen + extra inkomsten)
 function renderGemInkomstenCard(bijDavid, bijLauren, gemExtraIn) {
   const container = document.getElementById('gem-inkomsten-card');
   if (!container) return;
@@ -3845,16 +3941,21 @@ function renderGemInkomstenCard(bijDavid, bijLauren, gemExtraIn) {
       + '</div>';
   }
 
-  if (!tiles) {
-    container.innerHTML = '<div class="section-hdr"><span>Inkomsten</span><span class="total" id="total-gemeenschappelijk-inkomsten">€0</span></div>'
-      + '<div style="padding:12px 16px;font-size:13px;color:var(--text-3)">Nog niets ingevuld</div>';
-    return;
+  // Extra inkomsten tegels (schema + cross-rek) via renderSectionCard logica
+  const extraContainer = document.getElementById('gem-extra-inkomsten-card');
+  if (extraContainer && extraContainer.innerHTML) {
+    // Haal rtile-grid en tile-panels uit de extra-card en voeg toe
+    const grid = extraContainer.querySelector('.rtile-grid');
+    const extraPanels = extraContainer.querySelectorAll('.tile-panel');
+    if (grid) tiles += grid.innerHTML;
+    extraPanels.forEach(p => { panels += p.outerHTML; });
   }
 
   container.innerHTML =
     '<div class="section-hdr"><span>Inkomsten</span><span class="total" id="total-gemeenschappelijk-inkomsten">' + fmt(total) + '</span></div>'
-    + '<div class="rtile-grid">' + tiles + '</div>'
-    + panels;
+    + (tiles
+      ? '<div class="rtile-grid">' + tiles + '</div>' + panels
+      : '<div style="padding:12px 16px;font-size:13px;color:var(--text-3)">Nog niets ingevuld</div>');
 }
 
 // ===== + KNOP BIJ OVERSCHRIJVINGEN =====
@@ -4167,7 +4268,6 @@ function renderSpaarCardStyled(containerId, rek, spaarBedrag, isAuto, beschikbaa
   container.innerHTML = `
     <div class="spaar-section-hdr" style="color:${c};border-bottom-color:${cBorder}">
       <span>🏦 Sparen</span>
-      <span class="total" id="total-${rek}-sparen">${fmt(spaarBedrag)}</span>
     </div>
     <div class="budget-row" style="background:transparent;border-bottom:none">
       <span class="row-label" style="color:${c}">
@@ -4178,12 +4278,34 @@ function renderSpaarCardStyled(containerId, rek, spaarBedrag, isAuto, beschikbaa
         value="${spaarBedrag !== 0 || !isAuto ? (spaarBedrag || '') : ''}"
         placeholder="${isAuto ? fmt(beschikbaar) : '0'}"
         inputmode="decimal"
-        style="color:${spaarBedrag < 0 ? 'var(--rose)' : c};border-color:${cBorder}"
+        style="color:${spaarBedrag === 0 ? 'var(--text-3)' : spaarBedrag < 0 ? 'var(--rose)' : c};border-color:${cBorder}"
         onchange="setSpaar('${rek}', this.value)"
         oninput="setSpaar('${rek}', this.value)">
+    </div>`;
+}
+
+function renderGemSaldoCard(saldo, beschikbaar) {
+  const container = document.getElementById('gem-saldo-card');
+  if (!container) return;
+  // Accent altijd groen (gem kleur), alleen het bedrag wordt groen/rood
+  const c       = 'var(--gem)';
+  const cLight  = 'var(--gem-light)';
+  const cBorder = 'rgba(25,122,69,0.3)';
+  const amtColor = saldo === 0 ? 'var(--text-3)' : saldo < 0 ? 'var(--rose)' : 'var(--gem)';
+  container.style.background = `linear-gradient(145deg, ${cLight}, color-mix(in srgb, ${cLight} 70%, white))`;
+  container.style.borderColor = cBorder;
+  container.innerHTML = `
+    <div class="spaar-section-hdr" style="color:${c};border-bottom-color:${cBorder}">
+      <span>🏡 Saldo gemeenschappelijk</span>
     </div>
-    <div class="spaar-info-row" style="color:${c}">
-      Beschikbaar na uitgaven & bijdrage: <strong style="color:${beschikbaar < 0 ? 'var(--rose)' : 'inherit'}">${fmt(beschikbaar)}</strong>
+    <div class="budget-row" style="background:transparent;border-bottom:none">
+      <span class="row-label" style="color:${c}">
+        Saldo rekening
+        <span style="display:flex;align-items:center;gap:6px;margin-top:3px">
+          <span class="spaar-auto-badge" style="background:${c}">Automatisch</span>
+        </span>
+      </span>
+      <div class="spaar-input" style="color:${amtColor};border-color:${cBorder};display:flex;align-items:center;justify-content:flex-end;pointer-events:none;min-width:96px;text-align:right">${fmt(saldo)}</div>
     </div>`;
 }
 
@@ -4324,7 +4446,20 @@ function recalcAll() {
   animateAmtEl('man-inkomsten', c.davidIn, 'var(--green)');
   animateAmtEl('man-bijdrage',  c.bijDavid, 'var(--blue)');
   animateAmtEl('man-uitgaven',  c.davidUit, 'var(--rose)');
-  animateAmtEl('man-sparen-stat', c.davidSpaar);
+  // Sparen card: amber=leeg, groen=positief, rood=negatief
+  {
+    const card = document.getElementById('man-sparen-stat-card');
+    const lbl  = document.getElementById('man-sparen-lbl');
+    const amt  = document.getElementById('man-sparen-stat');
+    const noData = c.davidIn === 0 && c.davidUit === 0;
+    const color = noData ? 'var(--amber)' : c.davidSpaar < 0 ? 'var(--rose)' : 'var(--green)';
+    const bg    = noData ? 'var(--amber-light)' : c.davidSpaar < 0 ? 'var(--rose-light)' : 'var(--green-light)';
+    const border= noData ? 'var(--amber)' : c.davidSpaar < 0 ? 'var(--rose-mid)' : 'var(--green-mid)';
+    if (card) { card.style.background = bg; card.style.borderColor = border; }
+    if (lbl)  lbl.style.color = color;
+    if (amt)  amt.style.color = color;
+    animateAmtEl('man-sparen-stat', c.davidSpaar, color);
+  }
   setSaldo('man-saldo-card','man-saldo', c.davidSaldo);
   showAlert('alert-man', c.davidBeschikbaar, c.davidIn);
 
@@ -4332,19 +4467,31 @@ function recalcAll() {
   animateAmtEl('vrouw-inkomsten', c.laurenIn, 'var(--green)');
   animateAmtEl('vrouw-bijdrage',  c.bijLauren, 'var(--blue)');
   animateAmtEl('vrouw-uitgaven',  c.laurenUit, 'var(--rose)');
-  animateAmtEl('vrouw-sparen-stat', c.laurenSpaar);
+  // Sparen card: amber=leeg, groen=positief, rood=negatief
+  {
+    const card = document.getElementById('vrouw-sparen-stat-card');
+    const lbl  = document.getElementById('vrouw-sparen-lbl');
+    const amt  = document.getElementById('vrouw-sparen-stat');
+    const noData = c.laurenIn === 0 && c.laurenUit === 0;
+    const color = noData ? 'var(--amber)' : c.laurenSpaar < 0 ? 'var(--rose)' : 'var(--green)';
+    const bg    = noData ? 'var(--amber-light)' : c.laurenSpaar < 0 ? 'var(--rose-light)' : 'var(--green-light)';
+    const border= noData ? 'var(--amber)' : c.laurenSpaar < 0 ? 'var(--rose-mid)' : 'var(--green-mid)';
+    if (card) { card.style.background = bg; card.style.borderColor = border; }
+    if (lbl)  lbl.style.color = color;
+    if (amt)  amt.style.color = color;
+    animateAmtEl('vrouw-sparen-stat', c.laurenSpaar, color);
+  }
   setSaldo('vrouw-saldo-card','vrouw-saldo', c.laurenSaldo);
   showAlert('alert-vrouw', c.laurenBeschikbaar, c.laurenIn);
 
-  // === GEMEENSCHAPPELIJK panel (geen spaar) ===
+  // === GEMEENSCHAPPELIJK panel ===
   animateAmtEl('gem-inkomsten', c.gemIn, 'var(--green)');
   animateAmtEl('gem-uitgaven',  c.gemUit, 'var(--rose)');
-  setSaldo('gem-saldo-card','gem-saldo', c.gemSaldo);
+  const gemOvEl = document.getElementById('gem-overschrijvingen');
+  if (gemOvEl) { const ov = c.transferGemMan + c.transferGemVrouw; gemOvEl.textContent = fmt(ov); }
   showAlert('alert-gem', c.gemBeschikbaar, c.gemIn);
-  // Kleur gem-saldo rood als negatief
-  const gemSaldoEl = document.getElementById('gem-saldo');
-  if (gemSaldoEl) gemSaldoEl.style.color = c.gemSaldo < 0 ? 'var(--rose)' : 'var(--gem)';
   renderGemInkomstenCard(c.bijDavid, c.bijLauren, c.gemExtraIn);
+  renderGemSaldoCard(c.gemSaldo, c.gemBeschikbaar);
   // gem-extra-inkomsten-card is nu geïntegreerd in gem-inkomsten-card
 
 
@@ -4368,11 +4515,11 @@ function recalcAll() {
   setSaldo('ov-saldo-card','ov-saldo', totalVrij);
   document.getElementById('ov-saldo-sub').textContent = totalVrij >= 0 ? 'Vrij na sparen' : 'Tekort';
 
-  // Sparen card: rood bij negatief, teal bij positief
+  // Sparen card: rood bij negatief, groen bij positief
   const spaarNegatief = totalSpaar < 0;
-  const spaarKleur = spaarNegatief ? 'var(--rose)' : 'var(--teal)';
-  const spaarLicht  = spaarNegatief ? 'var(--rose-light)' : 'var(--teal-light)';
-  const spaarBorder = spaarNegatief ? 'var(--rose)' : 'var(--teal)';
+  const spaarKleur = spaarNegatief ? 'var(--rose)' : 'var(--green)';
+  const spaarLicht  = spaarNegatief ? 'var(--rose-light)' : 'var(--green-light)';
+  const spaarBorder = spaarNegatief ? 'var(--rose)' : 'var(--green-mid)';
   const spaarCard = document.getElementById('ov-sparen')?.closest('.stat-card');
   if (spaarCard) {
     spaarCard.style.background = spaarLicht;
@@ -4389,7 +4536,7 @@ function recalcAll() {
   const spaarrateEl = document.getElementById('ov-spaarrate');
   if (spaarrateEl) {
     spaarrateEl.textContent = spaarrate + '%';
-    spaarrateEl.style.color = spaarNegatief ? 'var(--rose)' : 'var(--teal)';
+    spaarrateEl.style.color = spaarNegatief ? 'var(--rose)' : 'var(--green)';
   }
   // Spaarrate card
   const spaarrateCard = spaarrateEl?.closest('.stat-card');
@@ -4513,9 +4660,17 @@ function buildYearData(rek) {
       });
 
     } else if (rek === 'gemeenschappelijk') {
-      // Gemeenschappelijk: inkomsten = bijdragen van David + Lauren, uitgaven = gem. uitgaven
+      // Gemeenschappelijk: inkomsten = bijdragen van David + Lauren + extra inkomsten, uitgaven = gem. uitgaven
       tIn += parseBedrag(data.man?.bijdrage?.gem) || 0;
       tIn += parseBedrag(data.vrouw?.bijdrage?.gem) || 0;
+      // Extra inkomsten gemeenschappelijk (opgeslagen als overige)
+      SCHEMA.gemeenschappelijk.inkomsten.forEach(i => {
+        if (i.extraInkomsten) {
+          try { const ov = JSON.parse(localStorage.getItem(`overige_gemeenschappelijk_inkomsten_extra_${i.key}_${mk}`) || '[]'); ov.forEach(o => { tIn += parseBedrag(o.bedrag) || 0; }); } catch {}
+        } else {
+          tIn += parseBedrag(data?.gemeenschappelijk?.inkomsten?.[i.key]) || 0;
+        }
+      });
       SCHEMA.gemeenschappelijk.uitgaven.forEach(i => {
         if (i.overige) {
           try { const ov = JSON.parse(localStorage.getItem(`overige_gemeenschappelijk_uitgaven_${mk}`) || '[]'); ov.forEach(o => { tUit += parseBedrag(o.bedrag) || 0; }); } catch {}
@@ -4578,7 +4733,7 @@ function renderBarChart(containerId, allData, maxVal, maxH) {
           ? `<div style="width:16px;height:3px;background:var(--border);border-radius:2px;opacity:0.4;align-self:flex-end"></div>`
           : `<div class="bar-in"  style="height:${hIn}px;${hIn===0?'display:none':''}"></div>
              <div class="bar-out" style="height:${hOut}px;${hOut===0?'display:none':''}"></div>
-             ${hBij > 0 ? `<div style="height:${hBij}px;width:6px;background:linear-gradient(180deg,#58A6FF,var(--blue));border-radius:3px 3px 0 0;flex-shrink:0"></div>` : ''}`
+             ${hBij > 0 ? `<div style="height:${hBij}px;width:6px;background:var(--blue);border-radius:3px 3px 0 0;flex-shrink:0"></div>` : ''}`
         }
       </div>
       <div class="bar-lbl">${d.lbl}</div>
@@ -4960,13 +5115,16 @@ function renderAll() {
   renderSectionCard('vrouw-uitgaven-card', 'vrouw',            'uitgaven');
   renderSectionCard('gem-extra-inkomsten-card', 'gemeenschappelijk', 'inkomsten');
   renderSectionCard('gem-uitgaven-card',   'gemeenschappelijk','uitgaven');
+  // gem-extra-inkomsten-card wordt als bron gebruikt door renderGemInkomstenCard, verberg de kaart zelf
+  const gemExtraCard = document.getElementById('gem-extra-inkomsten-card');
+  if (gemExtraCard) gemExtraCard.style.display = 'none';
 
   // Heropen panels die open waren
   openPanels.forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.style.display = 'block'; updateChevron(id, true); }
   });
-  ['gem-inkomsten-card','gem-uitgaven-card'].forEach(id => {
+  ['gem-inkomsten-card','gem-extra-inkomsten-card','gem-uitgaven-card'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('is-gem');
   });
@@ -5045,8 +5203,8 @@ function rapportGrafiekPersoon(rek, inkomsten, bijdrage, uitgaven, sparen, saldo
     <div class="rapport-grafiek-title">Maandverloop ${currentYear}</div>
     <div class="bar-chart rapport-bar-mini">${bars}</div>
     <div class="chart-legend" style="margin-top:6px">
-      <span><span class="leg-dot" style="background:var(--green-light);border:1px solid var(--green)"></span>Inkomsten</span>
-      <span><span class="leg-dot" style="background:var(--rose-light);border:1px solid var(--rose)"></span>Uitgaven</span>
+      <span><span class="leg-dot" style="background:var(--green)"></span>Inkomsten</span>
+      <span><span class="leg-dot" style="background:var(--rose)"></span>Uitgaven</span>
     </div>
   </div>`;
 }
@@ -5098,8 +5256,8 @@ function rapportGrafiekGem(gemIn, gemUit, gemSaldo) {
     <div class="rapport-grafiek-title">Maandverloop ${currentYear}</div>
     <div class="bar-chart rapport-bar-mini">${gemBars}</div>
     <div class="chart-legend" style="margin-top:6px">
-      <span><span class="leg-dot" style="background:var(--rose-light);border:1px solid var(--rose)"></span>Bijdragen</span>
-      <span><span class="leg-dot" style="background:var(--rose-light);border:1px solid var(--rose)"></span>Uitgaven</span>
+      <span><span class="leg-dot" style="background:var(--green)"></span>Bijdragen</span>
+      <span><span class="leg-dot" style="background:var(--rose)"></span>Uitgaven</span>
     </div>
   </div>`;
 }
@@ -5766,9 +5924,9 @@ function openGrafiekOverlay(rek) {
   if (legendEl) {
     const showBij = rek === 'man' || rek === 'vrouw';
     legendEl.innerHTML = `
-      <span><span class="leg-dot" style="background:var(--green-light);border:1px solid var(--green)"></span>Inkomsten</span>
-      <span><span class="leg-dot" style="background:var(--rose-light);border:1px solid var(--rose)"></span>Uitgaven</span>
-      ${showBij ? '<span><span class="leg-dot" style="background:var(--blue-light);border:1px solid var(--blue)"></span>Gem. rekening</span>' : ''}
+      <span><span class="leg-dot" style="background:var(--green)"></span>Inkomsten</span>
+      <span><span class="leg-dot" style="background:var(--rose)"></span>Uitgaven</span>
+      ${showBij ? '<span><span class="leg-dot" style="background:var(--blue)"></span>Gem. rekening</span>' : ''}
     `;
   }
 
@@ -5819,14 +5977,14 @@ function renderBarChartFull(containerId, allData, maxVal, maxH) {
       <div style="display:flex;align-items:flex-end;justify-content:center;gap:2px;height:${maxH}px">
         ${empty ? `<div style="height:${maxH}px;display:flex;align-items:flex-end;justify-content:center;width:${barW*3+6}px"><div style="width:2px;height:${maxH*0.15}px;background:var(--border);border-radius:1px;opacity:0.5"></div></div>` : `
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:0">
-          <div style="width:${barW}px;height:${hIn}px;background:linear-gradient(180deg,#2ECC71,var(--green));border-radius:4px 4px 0 0;min-height:${d.in > 0 ? 6 : 0}px"></div>
+          <div style="width:${barW}px;height:${hIn}px;background:var(--green);border-radius:4px 4px 0 0;min-height:${d.in > 0 ? 6 : 0}px"></div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:0">
-          <div style="width:${barW}px;height:${hOut}px;background:linear-gradient(180deg,#E05060,var(--rose));border-radius:4px 4px 0 0;min-height:${d.out > 0 ? 6 : 0}px"></div>
+          <div style="width:${barW}px;height:${hOut}px;background:var(--rose);border-radius:4px 4px 0 0;min-height:${d.out > 0 ? 6 : 0}px"></div>
         </div>
         ${hBij > 0 ? `
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:0">
-          <div style="width:${barW}px;height:${hBij}px;background:linear-gradient(180deg,#58A6FF,var(--blue));border-radius:4px 4px 0 0;min-height:6px"></div>
+          <div style="width:${barW}px;height:${hBij}px;background:var(--blue);border-radius:4px 4px 0 0;min-height:6px"></div>
         </div>` : ''}`}
       </div>
       <div style="font-size:9px;color:${lblColor};text-align:center;margin-top:4px;font-weight:${cur?'700':'400'};width:100%">${d.lbl}</div>
@@ -6015,7 +6173,11 @@ function renderJaarTab() {
     const bijLauren = parseBedrag(data.vrouw?.bijdrage?.gem) || 0;
     // Extra inkomsten gemeenschappelijk
     SCHEMA.gemeenschappelijk.inkomsten.forEach(i => {
-      tIn += parseBedrag(data.gemeenschappelijk?.inkomsten?.[i.key]) || 0;
+      if (i.extraInkomsten) {
+        try { const ov = JSON.parse(localStorage.getItem(`overige_gemeenschappelijk_inkomsten_extra_${i.key}_budget_${currentYear}-${String(m+1).padStart(2,'0')}`) || '[]'); ov.forEach(o => { tIn += parseBedrag(o.bedrag) || 0; }); } catch {}
+      } else {
+        tIn += parseBedrag(data.gemeenschappelijk?.inkomsten?.[i.key]) || 0;
+      }
     });
     ['man','vrouw'].forEach(r => {
       SCHEMA[r].inkomsten.forEach(i => { tIn += parseBedrag(data[r]?.inkomsten?.[i.key]) || 0; });
@@ -6967,7 +7129,7 @@ function renderRankingContent() {
         </div>
       </div>
       <div style="height:8px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--border)">
-        <div style="height:100%;width:${barW}%;background:linear-gradient(90deg,var(--rose),#E04040);border-radius:99px;transition:width .4s ease"></div>
+        <div style="height:100%;width:${barW}%;background:var(--rose);border-radius:99px;transition:width .4s ease"></div>
       </div>
     </div>`;
   });
@@ -7036,9 +7198,9 @@ document.getElementById('deel-overlay').addEventListener('click', function(e) {
         <div class="bar-chart" id="grafiek-full-chart"></div>
       </div>
       <div class="chart-legend" style="margin-top:10px">
-        <span><span class="leg-dot" style="background:var(--green-light);border:1px solid var(--green)"></span>Inkomsten</span>
-        <span><span class="leg-dot" style="background:var(--rose-light);border:1px solid var(--rose)"></span>Uitgaven</span>
-        <span><span class="leg-dot" style="background:var(--blue-light);border:1px solid var(--blue)"></span>Gem. rekening</span>
+        <span><span class="leg-dot" style="background:var(--green)"></span>Inkomsten</span>
+        <span><span class="leg-dot" style="background:var(--rose)"></span>Uitgaven</span>
+        <span><span class="leg-dot" style="background:var(--blue)"></span>Gem. rekening</span>
       </div>
     </div>
     <div id="grafiek-maand-detail"></div>
