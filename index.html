@@ -17,9 +17,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getDatabase, ref, onValue, set, remove, get, update } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+  import { getDatabase, ref, onValue, set, remove, get } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
   window.firebaseApp = { initializeApp };
-  window.firebaseDatabase = { getDatabase, ref, onValue, set, remove, get, update };
+  window.firebaseDatabase = { getDatabase, ref, onValue, set, remove, get };
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -2692,7 +2692,7 @@ function beginImport() {
   _importBatch = {};
 }
 
-// Batch import: commit — schrijft alles in één atomische Firebase update
+// Batch import: commit — schrijft alle batch-keys naar Firebase via set()
 function commitImport(onDone) {
   if (!_fbReady || !window._firebaseDatabase || Object.keys(_importBatch).length === 0) {
     _importWriting = false;
@@ -2700,22 +2700,23 @@ function commitImport(onDone) {
     if (onDone) onDone();
     return;
   }
-  const { ref, update } = window._firebaseDatabase;
+  const { ref, set, remove } = window._firebaseDatabase;
   const db = _fbDb;
-  if (!update || !db) {
-    console.error('Firebase update niet beschikbaar');
+  if (!set || !db) {
     _importWriting = false;
     _importBatch = {};
     if (onDone) onDone();
     return;
   }
-  // Gebruik update() voor atomische batch-write van alle keys
-  const updates = {};
-  Object.entries(_importBatch).forEach(([fk, val]) => {
-    updates['data/' + fk] = val; // null = delete in Firebase
+  // Schrijf alle batch-keys parallel via set() (zelfde mechanisme als fbSet)
+  const entries = Object.entries(_importBatch);
+  const promises = entries.map(([fk, val]) => {
+    if (val === null) {
+      return remove(ref(db, 'data/' + fk));
+    }
+    return set(ref(db, 'data/' + fk), val);
   });
-  update(ref(db, '/'), updates).then(() => {
-    // Wacht op echo van Firebase voor we de flag vrijgeven
+  Promise.all(promises).then(() => {
     setTimeout(() => {
       _importWriting = false;
       _importBatch = {};
