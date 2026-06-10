@@ -2700,7 +2700,15 @@ function commitImport(onDone) {
     if (onDone) onDone();
     return;
   }
-  const { ref, update, db } = window._firebaseDatabase;
+  const { ref, update } = window._firebaseDatabase;
+  const db = _fbDb;
+  if (!update || !db) {
+    console.error('Firebase update niet beschikbaar');
+    _importWriting = false;
+    _importBatch = {};
+    if (onDone) onDone();
+    return;
+  }
   // Gebruik update() voor atomische batch-write van alle keys
   const updates = {};
   Object.entries(_importBatch).forEach(([fk, val]) => {
