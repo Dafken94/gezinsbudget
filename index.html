@@ -174,18 +174,19 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   display: flex;
   align-items: center;
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 2px 0 var(--border-strong);
 }
 .month-btn {
   background: none;
   border: none;
   color: var(--text-2);
   cursor: pointer;
-  width: 32px;
-  height: 32px;
-  font-size: 16px;
+  width: 34px;
+  height: 36px;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -193,10 +194,12 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 }
 .month-btn:active { background: var(--border); }
 .month-label {
-  padding: 0 10px;
-  height: 32px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 0 12px;
+  height: 36px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 400;
+  font-style: italic;
   color: var(--text);
   display: flex;
   align-items: center;
@@ -205,8 +208,8 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
   cursor: pointer;
-  min-width: 76px;
-  letter-spacing: 0.01em;
+  min-width: 90px;
+  letter-spacing: -0.01em;
 }
 
 /* Header icon buttons */
@@ -286,16 +289,44 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   margin: 0 auto;
 }
 
-/* Per-tab backgrounds — subtiel */
-#panel-overzicht         { background: #F7F3EE; }
-#panel-man               { background: #F2F5FC; }
-#panel-vrouw             { background: #FBF3F5; }
-#panel-gemeenschappelijk { background: #F2F7F4; }
-#panel-jaar              { background: var(--bg); }
-[data-theme="dark"] #panel-overzicht         { background: #130E0C; }
-[data-theme="dark"] #panel-man               { background: #0C1020; }
-[data-theme="dark"] #panel-vrouw             { background: #1A0C10; }
-[data-theme="dark"] #panel-gemeenschappelijk { background: #0A1510; }
+/* Per-tab backgrounds — subtiel met lichte gradient */
+#panel-overzicht         { background: linear-gradient(180deg, #F2EDE6 0px, #F7F3EE 120px); }
+#panel-man               { background: linear-gradient(180deg, #EAF0FC 0px, #F2F5FC 120px); }
+#panel-vrouw             { background: linear-gradient(180deg, #FCE8EC 0px, #FBF3F5 120px); }
+#panel-gemeenschappelijk { background: linear-gradient(180deg, #E5F3EC 0px, #F2F7F4 120px); }
+#panel-jaar              { background: linear-gradient(180deg, #EDE8F5 0px, var(--bg) 120px); }
+[data-theme="dark"] #panel-overzicht         { background: linear-gradient(180deg, #1A0F0C 0px, #130E0C 120px); }
+[data-theme="dark"] #panel-man               { background: linear-gradient(180deg, #0F1525 0px, #0C1020 120px); }
+[data-theme="dark"] #panel-vrouw             { background: linear-gradient(180deg, #200C12 0px, #1A0C10 120px); }
+[data-theme="dark"] #panel-gemeenschappelijk { background: linear-gradient(180deg, #0D1D12 0px, #0A1510 120px); }
+[data-theme="dark"] #panel-jaar              { background: linear-gradient(180deg, #160E24 0px, #100C0B 120px); }
+
+/* ── DARK MODE verbeteringen ── */
+[data-theme="dark"] .stat-card {
+  box-shadow: 0 3px 0 rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] .rekening-card {
+  box-shadow: 0 3px 0 rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] .hero-card {
+  background: linear-gradient(140deg, #0A0806 0%, #1A1210 50%, #0A0F1A 100%);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.6), 0 12px 32px rgba(0,0,0,0.4);
+}
+
+/* ── JAAR TABEL SPARKLINES ── */
+.sparkline-cell { width: 56px; padding: 6px 8px !important; vertical-align: middle; }
+.sparkline-bar-wrap { display: flex; align-items: flex-end; gap: 1px; height: 22px; }
+.sparkline-bar { width: 5px; border-radius: 2px 2px 0 0; min-height: 2px; flex-shrink: 0; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-3);
+}
+.empty-state-emoji { font-size: 40px; margin-bottom: 12px; }
+.empty-state-title { font-family: var(--font-display); font-size: 20px; font-style: italic; color: var(--text-2); margin-bottom: 8px; }
+.empty-state-sub { font-size: 13px; line-height: 1.6; color: var(--text-3); }
 
 /* ── BOTTOM TAB BAR ── */
 .tab-bar {
@@ -325,12 +356,12 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   z-index: 0;
 }
 
-/* Pill color per tab */
-.tab-pill[data-active="overzicht"]         { background: var(--amber-light); border: 1px solid rgba(181,107,0,0.15); }
-.tab-pill[data-active="man"]               { background: var(--david-light);  border: 1px solid rgba(43,95,197,0.15); }
-.tab-pill[data-active="vrouw"]             { background: var(--lauren-light); border: 1px solid rgba(200,57,74,0.15); }
-.tab-pill[data-active="gemeenschappelijk"] { background: var(--gem-light);    border: 1px solid rgba(25,122,69,0.15); }
-.tab-pill[data-active="jaar"]              { background: var(--purple-light); border: 1px solid rgba(91,63,181,0.15); }
+/* Pill color per tab — subtle */
+.tab-pill[data-active="overzicht"]         { background: rgba(181,107,0,0.10); border: 1.5px solid rgba(181,107,0,0.18); }
+.tab-pill[data-active="man"]               { background: rgba(43,95,197,0.10);  border: 1.5px solid rgba(43,95,197,0.18); }
+.tab-pill[data-active="vrouw"]             { background: rgba(200,57,74,0.10);  border: 1.5px solid rgba(200,57,74,0.18); }
+.tab-pill[data-active="gemeenschappelijk"] { background: rgba(25,122,69,0.10);  border: 1.5px solid rgba(25,122,69,0.18); }
+.tab-pill[data-active="jaar"]              { background: rgba(91,63,181,0.10);  border: 1.5px solid rgba(91,63,181,0.18); }
 
 .tab-item {
   flex: 1;
@@ -338,22 +369,22 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px 2px 5px;
+  padding: 6px 4px 5px;
   cursor: pointer;
-  gap: 2px;
+  gap: 3px;
   min-height: var(--tab-h);
   position: relative;
   z-index: 1;
   transition: opacity 0.12s;
 }
-.tab-item:active { opacity: 0.6; }
+.tab-item:active { opacity: 0.55; }
 
 .tab-icon {
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.tab-item.active .tab-icon { transform: scale(1.15) translateY(-1px); }
+.tab-item.active .tab-icon { transform: scale(1.18) translateY(-2px); }
 
 .tab-label {
   font-size: 10px;
@@ -362,12 +393,16 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   letter-spacing: 0.01em;
   transition: color 0.15s, font-weight 0.15s;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 52px;
 }
-.tab-item.active[data-tab="overzicht"] .tab-label         { color: var(--amber);   font-weight: 700; }
-.tab-item.active[data-tab="man"] .tab-label               { color: var(--david);   font-weight: 700; }
-.tab-item.active[data-tab="vrouw"] .tab-label             { color: var(--lauren);  font-weight: 700; }
-.tab-item.active[data-tab="gemeenschappelijk"] .tab-label { color: var(--gem);     font-weight: 700; }
-.tab-item.active[data-tab="jaar"] .tab-label              { color: var(--purple);  font-weight: 700; }
+.tab-item.active[data-tab="overzicht"] .tab-label         { color: var(--amber);   font-weight: 800; }
+.tab-item.active[data-tab="man"] .tab-label               { color: var(--david);   font-weight: 800; }
+.tab-item.active[data-tab="vrouw"] .tab-label             { color: var(--lauren);  font-weight: 800; }
+.tab-item.active[data-tab="gemeenschappelijk"] .tab-label { color: var(--gem);     font-weight: 800; }
+.tab-item.active[data-tab="jaar"] .tab-label              { color: var(--purple);  font-weight: 800; }
+
 
 /* ── STAT CARDS ── */
 .stat-row {
@@ -383,7 +418,7 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   background: linear-gradient(160deg, var(--surface) 0%, var(--bg) 100%);
   border: 1.5px solid var(--border-strong);
   border-radius: var(--radius);
-  padding: 13px 15px;
+  padding: 16px 16px 14px;
   box-shadow: 0 3px 0 var(--border-strong), 0 5px 10px rgba(26,18,16,0.10);
   position: relative;
   overflow: hidden;
@@ -394,74 +429,138 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 40%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 100%);
   border-radius: var(--radius) var(--radius) 0 0;
   pointer-events: none;
 }
-[data-theme="dark"] .stat-card::before { background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%); }
+[data-theme="dark"] .stat-card::before { background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 100%); }
 .stat-card.full { grid-column: 1 / -1; }
 .stat-card .lbl {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.10em;
   color: var(--text-3);
-  margin-bottom: 5px;
+  margin-bottom: 7px;
 }
 .stat-card .amt {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 400;
-  line-height: 1.1;
+  line-height: 1.05;
   color: var(--text);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .stat-card .sub {
   font-size: 11px;
   color: var(--text-3);
-  margin-top: 3px;
+  margin-top: 4px;
 }
 
-/* Colored stat cards — 3D tinted */
-.stat-card.income  {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--green-light) 90%, white) 0%, var(--green-light) 100%) !important;
+/* Colored stat cards */
+.stat-card.income {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--green-light) 85%, white) 0%, var(--green-light) 100%) !important;
   border-color: var(--green-mid) !important;
   box-shadow: 0 3px 0 rgba(25,122,69,0.35), 0 5px 12px rgba(25,122,69,0.15);
 }
-.stat-card.income .lbl { color: var(--green) !important; }
+.stat-card.income .lbl { color: var(--green) !important; opacity: 0.8; }
 .stat-card.income .amt { color: var(--green); }
 .stat-card.expense {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--rose-light) 90%, white) 0%, var(--rose-light) 100%) !important;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--rose-light) 85%, white) 0%, var(--rose-light) 100%) !important;
   border-color: var(--rose-mid) !important;
   box-shadow: 0 3px 0 rgba(200,57,74,0.35), 0 5px 12px rgba(200,57,74,0.15);
 }
-.stat-card.expense .lbl { color: var(--rose) !important; }
+.stat-card.expense .lbl { color: var(--rose) !important; opacity: 0.8; }
 .stat-card.expense .amt { color: var(--rose); }
-.stat-card.spaar   {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--green-light) 90%, white) 0%, var(--green-light) 100%) !important;
-  border-color: var(--green-mid) !important;
-  box-shadow: 0 3px 0 rgba(25,122,69,0.35), 0 5px 12px rgba(25,122,69,0.15);
+.stat-card.spaar {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--teal-light) 85%, white) 0%, var(--teal-light) 100%) !important;
+  border-color: rgba(14,122,106,0.4) !important;
+  box-shadow: 0 3px 0 rgba(14,122,106,0.35), 0 5px 12px rgba(14,122,106,0.15);
 }
-.stat-card.spaar .lbl { color: var(--green) !important; }
-.stat-card.spaar .amt { color: var(--green); }
+.stat-card.spaar .lbl { color: var(--teal) !important; opacity: 0.8; }
+.stat-card.spaar .amt { color: var(--teal); }
 .stat-card.balance.positive .amt { color: var(--green); }
 .stat-card.balance.negative .amt { color: var(--rose); }
 
-
-/* Pop animatie op stat cards */
+/* Pop animatie */
 @keyframes statPop {
   0%   { transform: scale(1); }
-  45%  { transform: scale(1.03); }
+  45%  { transform: scale(1.04); }
   100% { transform: scale(1); }
 }
 .stat-card.pop { animation: statPop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
-/* Blue variant (gem. rekening bijdrage) */
+/* Blue variant */
 .stat-card.blue-card {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--blue-light) 90%, white) 0%, var(--blue-light) 100%) !important;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--blue-light) 85%, white) 0%, var(--blue-light) 100%) !important;
   border-color: var(--blue-mid) !important;
   box-shadow: 0 3px 0 rgba(26,100,200,0.30), 0 5px 12px rgba(26,100,200,0.12);
 }
+
+/* ── HERO CARD (gezinstotaal) ── */
+.hero-card {
+  grid-column: 1 / -1;
+  background: linear-gradient(140deg, #1A1210 0%, #2C2018 50%, #1A2030 100%);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 22px 20px 18px;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.30), 0 12px 32px rgba(26,18,16,0.22);
+  color: white;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2px;
+  transition: transform 0.1s;
+}
+.hero-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 100%);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  pointer-events: none;
+}
+.hero-card::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; right: -30px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.03);
+  pointer-events: none;
+}
+.hero-card .lbl {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 8px;
+}
+.hero-card .amt {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: white;
+}
+.hero-card .sub { font-size: 11px; color: rgba(255,255,255,0.38); margin-top: 5px; }
+.hero-card .hero-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.10);
+}
+.hero-stat { text-align: center; padding: 2px 0; }
+.hero-stat:not(:last-child) { border-right: 1px solid rgba(255,255,255,0.08); }
+.hero-stat-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.10em; color: rgba(255,255,255,0.38); margin-bottom: 4px; }
+.hero-stat-val { font-family: var(--font-display); font-size: 17px; color: white; letter-spacing: -0.01em; }
+.hero-stat-val.income  { color: #72E8AA; }
+.hero-stat-val.expense { color: #F4A0A8; }
+.hero-stat-val.spaar   { color: #7DD4CC; }
 
 /* ── BUDGET BAR ── */
 .budget-bar-wrap {
@@ -659,23 +758,49 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 
 /* ── SPAAR SECTION ── */
 .spaar-section-card {
-  background: var(--teal-light);
-  border: 1px solid rgba(14,122,106,0.25);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 3px 0 rgba(0,0,0,0.12), 0 6px 16px rgba(14,122,106,0.12);
 }
 .spaar-section-hdr {
-  padding: 12px 16px;
+  padding: 14px 18px 12px;
   border-bottom: 1px solid rgba(14,122,106,0.15);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
   justify-content: space-between;
   color: var(--teal);
 }
+/* Progress ring wrapper */
+.spaar-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px 14px;
+  background: transparent;
+}
+.spaar-big-amt {
+  flex: 1;
+}
+.spaar-big-amt .spaar-amt-val {
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.spaar-big-amt .spaar-pct-lbl {
+  font-size: 11px;
+  margin-top: 4px;
+  opacity: 0.65;
+}
+/* Radial progress */
+.spaar-ring-svg { flex-shrink: 0; }
+.spaar-ring-bg  { fill: none; stroke: rgba(0,0,0,0.08); stroke-width: 5; }
+.spaar-ring-fg  { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1); }
 .spaar-input {
   width: 96px;
   border: 1.5px solid rgba(14,122,106,0.3);
@@ -684,31 +809,32 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
   font-size: 15px;
   font-weight: 500;
   text-align: right;
-  background: var(--surface);
+  background: rgba(255,255,255,0.6);
   color: var(--teal);
   -webkit-appearance: none;
 }
-.spaar-input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14,122,106,0.12); }
+.spaar-input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14,122,106,0.12); background: white; }
 .spaar-auto-badge {
   font-size: 10px;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 99px;
   background: var(--teal);
   color: white;
   font-weight: 700;
+  letter-spacing: 0.03em;
 }
 .spaar-reset-btn {
   font-size: 11px;
   padding: 4px 10px;
   border-radius: 99px;
-  background: none;
+  background: rgba(255,255,255,0.4);
   border: 1px solid rgba(14,122,106,0.3);
   color: var(--teal);
   cursor: pointer;
   min-height: 28px;
 }
-.spaar-reset-btn:active { background: rgba(14,122,106,0.1); }
-.spaar-info-row { padding: 6px 16px 12px; font-size: 12px; color: var(--teal); }
+.spaar-reset-btn:active { background: rgba(14,122,106,0.15); }
+.spaar-info-row { padding: 6px 18px 14px; font-size: 12px; color: var(--teal); opacity: 0.8; }
 .spaar-stat span { color: var(--teal) !important; }
 
 /* ── OVERIGE / EXPANDABLE ── */
@@ -993,47 +1119,50 @@ input[type="number"] { -webkit-appearance: none; appearance: none; }
 .rekening-card {
   background: var(--surface);
   border: 1.5px solid var(--border-strong);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   margin-bottom: 10px;
-  box-shadow: 0 2px 6px rgba(26,18,16,0.07);
+  box-shadow: 0 3px 0 var(--border-strong), 0 4px 12px rgba(26,18,16,0.08);
+  transition: transform 0.12s;
 }
 .rekening-hdr {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
+  gap: 12px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--border);
 }
 .rek-icon {
-  width: 32px; height: 32px;
-  border-radius: 9px;
+  width: 38px; height: 38px;
+  border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 16px; flex-shrink: 0;
+  font-size: 18px; flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
-.icon-man   { background: var(--david-light); }
-.icon-vrouw { background: var(--lauren-light); }
-.icon-gem   { background: var(--gem-light); }
-.rek-naam   { flex: 1; font-weight: 600; font-size: 14px; }
-.rek-saldo  { font-family: var(--font-display); font-size: 18px; font-weight: 400; }
+.icon-man   { background: linear-gradient(135deg, var(--david-light), var(--david-mid)); }
+.icon-vrouw { background: linear-gradient(135deg, var(--lauren-light), var(--lauren-mid)); }
+.icon-gem   { background: linear-gradient(135deg, var(--gem-light), var(--gem-mid)); }
+.rek-naam   { flex: 1; font-weight: 700; font-size: 15px; }
+.rek-saldo  { font-family: var(--font-display); font-size: 22px; font-weight: 400; letter-spacing: -0.01em; }
 .saldo-pos  { color: var(--green); }
 .saldo-neg  { color: var(--rose); }
 .rekening-body {
   display: grid;
-  padding: 10px 14px;
-  gap: 8px;
+  padding: 12px 16px;
+  gap: 10px;
+  background: var(--surface-alt);
 }
 .rek-stat {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  font-size: 11px;
+  gap: 3px;
+  font-size: 10px;
   color: var(--text-3);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
 }
-.rek-stat span { font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+.rek-stat span { font-size: 14px; font-weight: 700; text-transform: none; letter-spacing: -0.01em; font-family: var(--font-display); }
 
 /* ── NOTITIE ── */
 .maand-notitie-wrap {
@@ -1913,17 +2042,26 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
     <div class="panel active" id="panel-overzicht">
       <div class="panel-inner">
         <div class="stat-row">
-          <div class="stat-card income">
-            <div class="lbl">Inkomsten</div>
-            <div class="amt" id="ov-inkomsten">€0</div>
-            <div class="sub">David + Lauren</div>
+          <div class="stat-card hero-card full" id="ov-hero-card">
+            <div class="lbl">Gezinssaldo deze maand</div>
+            <div class="amt" id="ov-saldo">€0</div>
+            <div class="sub" id="ov-saldo-sub">Beschikbaar na alle uitgaven</div>
+            <div class="hero-stats">
+              <div class="hero-stat">
+                <div class="hero-stat-lbl">Inkomsten</div>
+                <div class="hero-stat-val income" id="ov-inkomsten">€0</div>
+              </div>
+              <div class="hero-stat">
+                <div class="hero-stat-lbl">Uitgaven</div>
+                <div class="hero-stat-val expense" id="ov-uitgaven">€0</div>
+              </div>
+              <div class="hero-stat">
+                <div class="hero-stat-lbl">Sparen</div>
+                <div class="hero-stat-val spaar" id="ov-sparen-hero">€0</div>
+              </div>
+            </div>
           </div>
-          <div class="stat-card expense">
-            <div class="lbl">Uitgaven</div>
-            <div class="amt" id="ov-uitgaven">€0</div>
-            <div class="sub">Alle rekeningen</div>
-          </div>
-          <div style="display:none" id="ov-saldo-card"><span id="ov-saldo"></span><span id="ov-saldo-sub"></span></div>
+          <div style="display:none" id="ov-saldo-card"></div>
         </div>
 
         <div class="budget-bar-wrap">
@@ -2222,6 +2360,7 @@ input:-webkit-autofill { -webkit-text-fill-color: var(--text); box-shadow: 0 0 0
           <table class="jaar-tbl" id="jaar-table">
             <thead><tr>
               <th>Maand</th>
+              <th style="width:56px"></th>
               <th>Inkomsten</th>
               <th>Uitgaven</th>
               <th style="color:var(--blue)">Transfers</th>
@@ -2430,6 +2569,7 @@ const SCHEMA = {
     ],
     uitgaven: [
       { key:'lening_auto',       label:'🚗 Lening auto',              tag:'vast', persist:true },
+      { key:'verzekering_auto',  label:'🚗 Verzekering auto',         tag:'vast', persist:true },
       { key:'pensioensparen',    label:'🏦 Pensioensparen',           tag:'vast', persist:true },
       { key:'kledij',            label:'👗 Kledij',                   tag:'var'  },
       { key:'tanken',            label:'⛽ Tanken',                   tag:'var'  },
@@ -4429,30 +4569,54 @@ function showAlert(id, saldo, inkomsten) {
 function renderSpaarCardStyled(containerId, rek, spaarBedrag, isAuto, beschikbaar, kleur) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  const c = kleur === 'man' ? 'var(--david)' : kleur === 'vrouw' ? 'var(--lauren)' : 'var(--teal)';
+  const c      = kleur === 'man' ? 'var(--david)' : kleur === 'vrouw' ? 'var(--lauren)' : 'var(--teal)';
+  const cHex   = kleur === 'man' ? '#2B5FC5' : kleur === 'vrouw' ? '#C8394A' : '#0E7A6A';
   const cLight = kleur === 'man' ? 'var(--david-light)' : kleur === 'vrouw' ? 'var(--lauren-light)' : 'var(--teal-light)';
-  const cBorder = kleur === 'man' ? 'rgba(91,111,191,0.3)' : kleur === 'vrouw' ? 'rgba(192,64,122,0.25)' : 'rgba(14,122,138,0.3)';
+  const cMid   = kleur === 'man' ? 'var(--david-mid)' : kleur === 'vrouw' ? 'var(--lauren-mid)' : 'var(--gem-mid)';
+  const cBorder = kleur === 'man' ? 'rgba(43,95,197,0.3)' : kleur === 'vrouw' ? 'rgba(200,57,74,0.25)' : 'rgba(14,122,106,0.3)';
   const autoLabel = isAuto
     ? `<span class="spaar-auto-badge" style="background:${c}">Automatisch</span>`
     : `<button class="spaar-reset-btn" onclick="resetSpaarToAuto('${rek}')" style="border-color:${cBorder};color:${c}">↺ Auto</button>`;
-  container.style.background = `linear-gradient(145deg, ${cLight}, color-mix(in srgb, ${cLight} 70%, white))`;
+
+  // Progress ring calculation
+  const displayAmt = isAuto ? beschikbaar : spaarBedrag;
+  const pct = beschikbaar > 0 ? Math.max(0, Math.min(1, displayAmt / beschikbaar)) : 0;
+  const r = 22, circ = 2 * Math.PI * r;
+  const dash = circ * pct;
+  const pctLabel = beschikbaar > 0 ? Math.round(pct * 100) + '% van beschikbaar' : '';
+  const amtColor = displayAmt < 0 ? 'var(--rose)' : c;
+
+  container.style.background = `linear-gradient(145deg, ${cLight}, color-mix(in srgb, ${cLight} 60%, white))`;
   container.style.borderColor = cBorder;
+  container.style.border = `1.5px solid ${cBorder}`;
   container.innerHTML = `
     <div class="spaar-section-hdr" style="color:${c};border-bottom-color:${cBorder}">
       <span>🏦 Sparen</span>
+      <span style="font-size:9px;font-weight:500;opacity:0.6;text-transform:none;letter-spacing:0">${autoLabel}</span>
     </div>
-    <div class="budget-row" style="background:transparent;border-bottom:none">
-      <span class="row-label" style="color:${c}">
-        Maandelijks sparen
-        <span style="display:flex;align-items:center;gap:6px;margin-top:3px">${autoLabel}</span>
-      </span>
-      <input class="spaar-input" type="text" inputmode="decimal" id="input-${rek}-sparen"
-        value="${!isAuto ? (spaarBedrag !== 0 ? spaarBedrag : '') : ''}"
-        placeholder="${isAuto ? fmt(beschikbaar) : '0'}"
-        inputmode="decimal"
-        style="color:${isAuto ? 'var(--text-3)' : spaarBedrag < 0 ? 'var(--rose)' : spaarBedrag > 0 ? c : 'var(--text-3)'};border-color:${cBorder}"
-        onchange="setSpaar('${rek}', this.value)"
-        oninput="setSpaar('${rek}', this.value)">
+    <div class="spaar-progress-wrap">
+      <div class="spaar-big-amt">
+        <div class="spaar-amt-val" style="color:${amtColor}">${fmt(displayAmt)}</div>
+        <div class="spaar-pct-lbl" style="color:${c}">${pctLabel}</div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;color:${c};opacity:0.7">Handmatig:</span>
+          <input class="spaar-input" type="text" inputmode="decimal" id="input-${rek}-sparen"
+            value="${!isAuto ? (spaarBedrag !== 0 ? spaarBedrag : '') : ''}"
+            placeholder="${isAuto ? fmt(beschikbaar) : '0'}"
+            style="color:${isAuto ? 'var(--text-3)' : displayAmt < 0 ? 'var(--rose)' : c};border-color:${cBorder};width:90px;font-size:14px;padding:7px 9px"
+            onchange="setSpaar('${rek}', this.value)"
+            oninput="setSpaar('${rek}', this.value)">
+        </div>
+      </div>
+      <svg class="spaar-ring-svg" width="56" height="56" viewBox="0 0 56 56">
+        <circle class="spaar-ring-bg" cx="28" cy="28" r="${r}"/>
+        <circle class="spaar-ring-fg" cx="28" cy="28" r="${r}"
+          stroke="${cHex}"
+          stroke-dasharray="${circ}"
+          stroke-dashoffset="${circ - dash}"
+          transform="rotate(-90 28 28)"/>
+        <text x="28" y="32" text-anchor="middle" font-size="10" font-weight="700" fill="${cHex}">${Math.round(pct*100)}%</text>
+      </svg>
     </div>`;
 }
 
@@ -4703,7 +4867,13 @@ function recalcAll() {
   animateAmtEl('ov-uitgaven',  totalUit);
   animateAmtEl('ov-sparen',    totalSpaar);
   setSaldo('ov-saldo-card','ov-saldo', totalVrij);
-  document.getElementById('ov-saldo-sub').textContent = totalVrij >= 0 ? 'Vrij na sparen' : 'Tekort';
+  // Hero card updates
+  const heroSaldoEl = document.getElementById('ov-saldo');
+  const heroSubEl   = document.getElementById('ov-saldo-sub');
+  if (heroSaldoEl) { heroSaldoEl.textContent = fmt(totalVrij); heroSaldoEl.style.color = totalVrij < 0 ? '#F4A0A8' : 'white'; }
+  if (heroSubEl)   heroSubEl.textContent = totalVrij >= 0 ? 'Beschikbaar na sparen' : '⚠️ Tekort dit maand';
+  const heroSpaarEl = document.getElementById('ov-sparen-hero');
+  if (heroSpaarEl) heroSpaarEl.textContent = fmt(totalSpaar);
 
   // Sparen card: rood bij negatief, groen bij positief
   const spaarNegatief = totalSpaar < 0;
@@ -4768,6 +4938,17 @@ function renderOverzichtRekeningen(c) {
   const gezinBesch = totalIn - totalUit;
   const totalSpaar= c.davidSpaar + c.laurenSpaar;
   const totalSaldo= gezinBesch - totalSpaar;
+  // Empty state check
+  const hasAnyData = totalIn > 0 || totalUit > 0;
+  if (!hasAnyData) {
+    document.getElementById('overzicht-rekeningen').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-emoji">📊</div>
+        <div class="empty-state-title">Nog geen data deze maand</div>
+        <div class="empty-state-sub">Importeer een KBC of BNP bankafschrift via de knoppen hierboven, of vul de bedragen handmatig in via de tabs.</div>
+      </div>`;
+    return;
+  }
   document.getElementById('overzicht-rekeningen').innerHTML = `
     <div class="rekening-card" style="border-color:rgba(91,111,191,0.35)">
       <div class="rekening-hdr" style="background:linear-gradient(135deg,var(--david-light),#E8ECFA);border-bottom-color:rgba(91,111,191,0.2)">
@@ -5540,6 +5721,19 @@ function switchTab(tab, animate = true) {
   document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
   // Move pill
   movePill(idx);
+  // Update header accent gradient
+  const hdr = document.querySelector('.app-header');
+  if (hdr) {
+    const hdrGradients = {
+      overzicht: 'linear-gradient(180deg, color-mix(in srgb, #F2EDE6 60%, white) 0%, white 100%)',
+      man: 'linear-gradient(180deg, color-mix(in srgb, #EAF0FC 60%, white) 0%, white 100%)',
+      vrouw: 'linear-gradient(180deg, color-mix(in srgb, #FCE8EC 60%, white) 0%, white 100%)',
+      gemeenschappelijk: 'linear-gradient(180deg, color-mix(in srgb, #E5F3EC 60%, white) 0%, white 100%)',
+      jaar: 'linear-gradient(180deg, color-mix(in srgb, #EDE8F5 60%, white) 0%, white 100%)',
+    };
+    hdr.style.background = hdrGradients[tab] || 'var(--surface)';
+    hdr.style.transition = 'background 0.3s ease';
+  }
   // Update transfer FAB visibility
   updateTransferFabVisibility();
 }
@@ -5806,6 +6000,7 @@ const ALLE_TEGELS = [
   { key:'vakbond',        label:'✊ Vakbond',           type:'schema', tag:'vast' },
   { key:'syndicus',       label:'🏛️ Syndicus',         type:'schema', tag:'vast' },
   { key:'verzekering_appartement', label:'🔒 Verzekering app.', type:'schema', tag:'vast' },
+  { key:'verzekering_auto',        label:'🚗 Verzekering auto', type:'schema', tag:'vast' },
   { key:'ecowerf',        label:'♻️ Ecowerf',          type:'schema', tag:'var' },
   // Overige altijd als laatste
   { key:'__overige__',    label:'💬 Overige',          type:'overige' },
@@ -6503,8 +6698,18 @@ function renderJaarTab() {
     const notitie = localStorage.getItem(notitieKey) || '';
     const notitieHtml = notitie ? `<div style="font-size:10px;color:var(--text-2);font-style:italic;margin-top:2px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${notitie}</div>` : '';
 
-    rows += `<tr class="${isCur ? 'current-month' : ''} ${isLocked ? 'locked-month' : ''}" style="${!hasData && !isCur ? 'opacity:0.4' : ''}">
+    const barH = 22;
+    const maxBar = Math.max(tIn, tUit, 1);
+    const inH  = hasData ? Math.max(2, Math.round((tIn  / maxBar) * barH)) : 0;
+    const uitH = hasData ? Math.max(2, Math.round((tUit / maxBar) * barH)) : 0;
+    const sparkHtml = hasData ? `<div class="sparkline-bar-wrap">
+      <div class="sparkline-bar" style="height:${inH}px;background:var(--green);"></div>
+      <div class="sparkline-bar" style="height:${uitH}px;background:var(--rose);"></div>
+    </div>` : `<div class="sparkline-bar-wrap"></div>`;
+
+    rows += `<tr class="${isCur ? 'current-month' : ''} ${isLocked ? 'locked-month' : ''}" style="${!hasData && !isCur ? 'opacity:0.35' : ''}">
       <td><div>${MAANDEN[m].substring(0,3)}</div>${notitieHtml}</td>
+      <td class="sparkline-cell">${sparkHtml}</td>
       <td style="color:var(--green)">${hasData || isCur ? fmt(tIn) : '—'}</td>
       <td style="color:var(--rose)">${hasData || isCur ? fmt(tUit) : '—'}</td>
       <td style="color:var(--blue)">${hasData ? fmt(tTransfers) : '—'}</td>
@@ -6517,6 +6722,7 @@ function renderJaarTab() {
   const totSpaarColor = totSpaar < 0 ? 'color:var(--rose)' : 'color:var(--teal)';
   rows += `<tr class="totaal-row">
     <td>Totaal</td>
+    <td></td>
     <td style="color:var(--green)">${fmt(totIn)}</td>
     <td style="color:var(--rose)">${fmt(totUit)}</td>
     <td style="color:var(--blue)">${fmt(totTransfers)}</td>
@@ -7596,9 +7802,11 @@ const KBC_TEGEL_REGELS = [
   // Pensioen & ziekenfonds
   { keys: ['PRICOS RI STORTING','PENSIOENSPAARREKENING','KBC PENSION SAVINGS FUND'], rek: null, type: 'uitgaven', tegel: 'pensioensparen' , or: true },
   { keys: ['HELAN','ZIEKENFONDSBIJDRAGEN','CM ','MUTUALITE'], rek: null, type: 'uitgaven', tegel: 'ziekenfonds' , or: true },
-  { keys: ['ZORGKAS','VLAAMS AGENTSCHAP ZORG'], rek: null, type: 'uitgaven', tegel: 'zorgkas' , or: true },
+  { keys: ['ZORGKAS','VLAAMS AGENTSCHAP ZORG','VLAAMSE ZORGKAS'], rek: null, type: 'uitgaven', tegel: 'zorgkas' , or: true },
   // Vakbond
   { keys: ['NATIONAAL SYNDICAAT','NSPV','SYNDICALE PREMIE'], rek: null, type: 'uitgaven', tegel: 'vakbond' , or: true },
+  // Verzekering auto
+  { keys: ['DOCCLE -AXA','AXA BELGIUM'], rek: null, type: 'uitgaven', tegel: 'verzekering_auto', or: true },
   // Belastingen
   { keys: ['FOD FINANCIEN','VLABEL','FB VLABEL','VERKEERSBELASTING','ONROERENDE'], rek: null, type: 'uitgaven', tegel: 'belastingen' , or: true },
   // Nutsbedrijven
@@ -7654,6 +7862,7 @@ const KBC_TEGEL_REGELS = [
   { keys: ['VANGROOTLOON'], rek: null, type: 'uitgaven', tegel: 'eten' },
   { keys: ['FOOD'], rek: null, type: 'uitgaven', tegel: 'eten' },
   { keys: ['HORECA','RESTO ','RESTAURANT','FRITUUR','BRASSERIE','SANDWICH','PASTA'], rek: null, type: 'uitgaven', tegel: 'eten' },
+  { keys: ['BARACCA ','D\'ENTRECOT','ENTRECOT','MAES LUMMEN','SUSHI SHOP','FAF SUSHI','MAISON MATHIS','AIGLES D OR','FESTIVAL SHOP'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
 
   // ── KLEDIJ ────────────────────────────────────────────────────────────────
   { keys: ['ZALANDO'], rek: null, type: 'uitgaven', tegel: 'zalando' },
@@ -7685,26 +7894,13 @@ const KBC_TEGEL_REGELS = [
   { keys: ['SMARTPHOTO'], rek: null, type: 'uitgaven', tegel: 'bol' },
   { keys: ['IKEA'], rek: null, type: 'uitgaven', tegel: 'bol' },
 
-  // ── ETEN BUITEN ───────────────────────────────────────────────────────────
-  { keys: ['MCDONALDS','MC DONALD','MC DONALDS','MCD FOOD'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
-  { keys: ['QUICK '], rek: null, type: 'uitgaven', tegel: 'eten' },
-  { keys: ['PIZZA','PIZZA HUT','PIZZA.BE'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
-  { keys: ['TAKEAWAY','TAKEAWAY.COM'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
-  { keys: ['SUBWAY'], rek: null, type: 'uitgaven', tegel: 'eten' },
-  { keys: ['DSE ','DSE DIEST'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
-  { keys: ['ZODIAC'], rek: null, type: 'uitgaven', tegel: 'eten' },
-  { keys: ['HET WAAR GENOEGEN'], rek: null, type: 'uitgaven', tegel: 'eten' },
-  { keys: ['IJS ','IJS ROSSI','IJS*'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
-  { keys: ['FOYER','LSP*FOYER'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
-  { keys: ['CHURROS','EL CHURROS'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
-  { keys: ['DE BROODMOLEN'], rek: null, type: 'uitgaven', tegel: 'eten' },
-  { keys: ['VANGROOTLOON'], rek: null, type: 'uitgaven', tegel: 'eten' },
-  { keys: ['FOOD'], rek: null, type: 'uitgaven', tegel: 'eten' },
-  { keys: ['HORECA','RESTO ','RESTAURANT','FRITUUR','BRASSERIE','SANDWICH','PASTA'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
-
   // ── UITSTAP / VRIJETIJD ───────────────────────────────────────────────────
   { keys: ['PAKAWI','PLOPSA','KINDERBOERDERIJ','PRESTON PALACE','DOMEIN BOVY'], rek: null, type: 'uitgaven', tegel: 'uitstap', or: true },
   { keys: ['DAP BEESTIG'], rek: null, type: 'uitgaven', tegel: 'uitstap' },
+  { keys: ['LIMAX ','DREAMLAND','SPEELGOED','FESTIVALS','GOLAZO','INKART','FESTIVAL '], rek: null, type: 'uitgaven', tegel: 'uitstap', or: true },
+
+  // ── PREPAID / TELECOM ──────────────────────────────────────────────────────
+  { keys: ['PREPAID LADING'], rek: null, type: 'uitgaven', tegel: 'abonnementen' },
 
   // ── BANKKOSTEN ────────────────────────────────────────────────────────────
   { keys: ['KBC-PLUSREKENING','BIJDRAGE','KBC BRUSSELS-BASISREKENING','KBC BRUSSELS-BUDGETREKENING','VERBRUIK'], rek: null, type: 'uitgaven', tegel: null, or: true },
@@ -8111,7 +8307,7 @@ function importeerKbcCsv(inputEl) {
           const isInkomst = bedrag > 0;
           // Positieve bedragen op uitgaven-tegels negeren (ristorno's, terugboekingen)
           if (isInkomst && regel.type === 'uitgaven') {
-            negeerLijst.push({ datum: row['Datum'], bedrag, label: naamTegenpartij || extractHandelsnaam(omschrijving), reden: 'Ristorno/terugboeking uitgaven' });
+            negeerLijst.push({ datum, bedrag, label: naamTegenpartij || extractHandelsnaam(omschrijving), reden: 'Ristorno/terugboeking uitgaven' });
             totaalNegeerd++; gekoppeld = true; break;
           }
           const doelType  = isInkomst ? 'inkomsten' : regel.type;
@@ -8275,27 +8471,39 @@ const BNP_TEGEL_REGELS = [
   { keys: ['NETFLIX'], type: 'abonnementen', tegel: 'netflix' },
   { keys: ['SPOTIFY'], type: 'abonnementen', tegel: 'spotify' },
   // ── BRANDSTOFFEN ─────────────────────────────────────────────────────────
-  { keys: ['TOTAL NB','TEXACO','SHELL','Q8 ','ESSO','TINQ','LUKOIL'], type: 'uitgaven', tegel: 'tanken' },
+  { keys: ['TOTAL NB','TOTAL XB','TEXACO','SHELL','Q8 ','ESSO','TINQ','LUKOIL','GULF '], type: 'uitgaven', tegel: 'tanken', or: true },
+  // ── ENERGIE ──────────────────────────────────────────────────────────────
+  { keys: ['LUMINUS','ENECO','FLUVIUS'], type: 'uitgaven', tegel: 'energie', or: true },
+  // ── ZORGKAS ──────────────────────────────────────────────────────────────
+  { keys: ['ZORGKAS','DOCCLE -CM ZORGKAS','VLAAMSE ZORGKAS'], type: 'uitgaven', tegel: 'zorgkas', or: true },
   // ── KLEDING & WEBSHOPS ───────────────────────────────────────────────────
   { keys: ['ZALANDO'], type: 'uitgaven', tegel: 'zalando' },
-  { keys: ['BOL.COM','BOL COM'], type: 'uitgaven', tegel: 'bol' },
-  { keys: ['ZEEMAN','C&A ','C&A ONLINE','SHEIN','DOUGLAS','GOEDGEMERKT','H M','ABOUT YOU','TEMU','DECATHLON','KLARNA'], type: 'uitgaven', tegel: 'kledij' },
+  { keys: ['BOL.COM','BOL COM'], type: 'uitgaven', tegel: 'bol', or: true },
+  { keys: ['ZEEMAN','C&A ','C&A ONLINE','SHEIN','DOUGLAS','GOEDGEMERKT','H M','H&M','ABOUT YOU','TEMU','DECATHLON','KLARNA'], type: 'uitgaven', tegel: 'kledij', or: true },
+  { keys: ['JBC ','JBC N.V.','TORFS','VANHAREN','VERITAS NV','PRIMARK','HEMA ','WIBRA','NEXT ONLINE','ASOS','EDC '], type: 'uitgaven', tegel: 'kledij', or: true },
+  { keys: ['NAOSHA','KURAGO','BENT SCHOENEN','OUTRANCE FASHION','ETRIAS','LARA BOUTIQUE','TANGO SHOES','WILD SOULS'], type: 'uitgaven', tegel: 'kledij', or: true },
   // ── BOODSCHAPPEN ─────────────────────────────────────────────────────────
-  { keys: ['SPAR ','DELHAIZE','ALDI','COLRUYT','CARREFOUR','LIDL','KRUIDVAT','ALBERT HEIJN','RENMANS'], type: 'uitgaven', tegel: 'boodschappen' },
-  // ── APOTHEEK / DROGIST ───────────────────────────────────────────────────
-  { keys: ['APOTHEEK','PHARMACIE','FARMALINE','MULTIPHARMA','MEDICARE','MEDI-MARKET'], type: 'uitgaven', tegel: 'apotheek', or: true },
-  { keys: ['HUISARTS','DOKTER '], type: 'uitgaven', tegel: 'apotheek', or: true },
+  { keys: ['SPAR ','DELHAIZE','ALDI','COLRUYT','CARREFOUR','LIDL','KRUIDVAT','ALBERT HEIJN','RENMANS','OKAY '], type: 'uitgaven', tegel: 'boodschappen', or: true },
+  // ── APOTHEEK / DROGIST / MEDISCH ─────────────────────────────────────────
+  { keys: ['APOTHEEK','APOTEEK','PHARMACIE','FARMALINE','MULTIPHARMA','MEDICARE','MEDI-MARKET'], type: 'uitgaven', tegel: 'apotheek', or: true },
+  // ── VERZEKERING AUTO ──────────────────────────────────────────────────────
+  { keys: ['DOCCLE -AXA','AXA BELGIUM'], type: 'uitgaven', tegel: 'verzekering_auto', or: true },
+  { keys: ['HUISARTSEN','DOKTER ','UZ LEUVEN','DOCCLE -UZ','DOCCLE -CM '], type: 'uitgaven', tegel: 'apotheek', or: true },
   // ── ETEN ─────────────────────────────────────────────────────────────────
-  { keys: ['MCDONALDS','MC DONALD','MC DONALDS','QUICK ','PIZZA','TAKEAWAY','SUBWAY','DELITRAITEUR','DSE ','ZODIAC','BASILIEK'], type: 'uitgaven', tegel: 'eten', or: true },
-  { keys: ['HET WAAR GENOEGEN','IJS ','IJS ROSSI','CHURROS','VANGROOTLOON','DE BROODMOLEN','FOYER'], type: 'uitgaven', tegel: 'eten', or: true },
-  // ── UITSTAP / VRIJETIJD ──────────────────────────────────────────────────
-  { keys: ['PAKAWI','PLOPSA','KINDERBOERDERIJ','PRESTON PALACE','DOMEIN BOVY','DAP BEESTIG'], type: 'uitgaven', tegel: 'uitstap', or: true },
-  // ── KLEDIJ (extra) ────────────────────────────────────────────────────────
-  { keys: ['ADIDAS','BABEEWORLD','ETRIAS','NAOSHA','KURAGO','BENT SCHOEMEN'], type: 'uitgaven', tegel: 'kledij', or: true },
-  // ── BOL / CADEAUS ─────────────────────────────────────────────────────────
-  { keys: ['BOLCOM BV','STICHTING MOLLIE','YOURSURPRISE','SMARTPHOTO','IKEA'], type: 'uitgaven', tegel: 'bol', or: true },
+  { keys: ['MCDONALDS','MC DONALD','MC DONALDS','MCDONALD','QUICK ','PIZZA','TAKEAWAY','SUBWAY','DELITRAITEUR','DSE ','ZODIAC','BASILIEK'], type: 'uitgaven', tegel: 'eten', or: true },
+  { keys: ['HET WAAR GENOEGEN','VANGROOTLOON','DE BROODMOLEN','BAKKERIJ','SUSHI SHOP','VINO ASCANIO'], type: 'uitgaven', tegel: 'eten', or: true },
+  // ── UITSTAP / VRIJETIJD / LIAS ───────────────────────────────────────────
+  { keys: ['PAKAWI','PLOPSA','KINDERBOERDERIJ','PRESTON PALACE','DAP BEESTIG','DREAMLAND','VILLA DEUGENIET'], type: 'uitgaven', tegel: 'uitstap', or: true },
+  { keys: ['GOLAZO','EVENTSQUARE','TENNIS EN PADEL','THERMAE 2000'], type: 'uitgaven', tegel: 'uitstap', or: true },
+  // ── WONEN / BRICO ─────────────────────────────────────────────────────────
+  { keys: ['BRICO ','JYSK '], type: 'uitgaven', tegel: 'bol', or: true },
+  { keys: ['ACTION '], type: 'uitgaven', tegel: 'action', or: true },
+  // ── KLEDIJ (extra merken) ─────────────────────────────────────────────────
+  { keys: ['ADIDAS','BABEEWORLD','RITUALS','BEAUTY','PARFUMERIE'], type: 'uitgaven', tegel: 'kledij', or: true },
+  // ── BOL / CADEAUS / ONLINE ────────────────────────────────────────────────
+  { keys: ['BOLCOM BV','STICHTING MOLLIE','YOURSURPRISE','SMARTPHOTO','ALBELLI','SMARTBOX'], type: 'uitgaven', tegel: 'bol', or: true },
   // ── BANKKOSTEN (negeren) ──────────────────────────────────────────────────
-  { keys: ['MAANDELIJKSE BIJDRAGE EASY GUIDE','EASY GUIDE PACK','KOSTEN IN VERBAND MET DE REKENING','BANKKOSTEN'], type: 'uitgaven', tegel: null, or: true },
+  { keys: ['MAANDELIJKSE BIJDRAGE EASY GUIDE','EASY GUIDE PACK','KOSTEN IN VERBAND MET DE REKENING','BANKKOSTEN','BIJDRAGE EASY GUIDE','ADMINISTRATIEKOSTEN VOOR KREDIET'], type: 'uitgaven', tegel: null, or: true },
 ];
 
 // Extract handelsnaam uit BNP details/mededeling/naam
