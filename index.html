@@ -7581,58 +7581,61 @@ const KBC_TEGEL_REGELS = [
   { keys: ['POLITIEZONE','EINDEJAARSTOELAGE'],      rek: 'man', type: 'inkomsten', tegel: 'eindejaarstoelage', verschuif: false },
   { keys: ['POLITIEZONE','VARIABELE BEZOLDIGINGEN'],rek: 'man', type: 'inkomsten', tegel: 'onregelmatig',      verschuif: true  },
   { keys: ['POLITIEZONE','VASTE BEZOLDIGINGEN'],    rek: 'man', type: 'inkomsten', tegel: 'loon',              verschuif: true  },
-  { keys: ['R.V.A.','LOOPBAANONDERBREK','RVA','BREAKATWORK','OFFICE NATIONAL DE L\'EMPLOI','ONEM ','RVA-UITKERING'], rek: null, type: 'inkomsten', tegel: 'rva' },
-  { keys: ['FB VLABEL','TERUGBET. VERKEERSBELASTING'], rek: null, type: 'inkomsten', tegel: null }, // terugbetaling → overige
+  { keys: ['R.V.A.','LOOPBAANONDERBREK','RVA','BREAKATWORK','OFFICE NATIONAL DE L\'EMPLOI','ONEM ','RVA-UITKERING'], rek: null, type: 'inkomsten', tegel: 'rva', or: true },
+  { keys: ['FB VLABEL','TERUGBET. VERKEERSBELASTING'], rek: null, type: 'inkomsten', tegel: null , or: true }, // terugbetaling → overige
 
   // ── VASTE UITGAVEN ───────────────────────────────────────────────────────
   // Leningen
   { keys: ['TERUGBETALING LENING OP AFBETALING','REFERENTIE 420-6126921'], rek: 'man', type: 'uitgaven', tegel: 'lening_auto' },
-  { keys: ['TERUGBETALING WONINGKREDIET','WONINGKREDIET'], rek: null, type: 'uitgaven', tegel: 'lening_woning' },
+  { keys: ['TERUGBETALING WONINGKREDIET','WONINGKREDIET'], rek: null, type: 'uitgaven', tegel: 'lening_woning' , or: true },
   // KBC Verzekeringen — opgesplitst op basis van omschrijving (specifiek → overige als geen match)
   // Wordt afgehandeld via bedrag-logica in importeerKbcCsv (zie KBC_VERZEKERING_REGELS)
-  { keys: ['SCHULDSALDOPOLIS','SCHULDSALDO POLIS'], rek: null, type: 'uitgaven', tegel: 'schuldsaldo' },
+  { keys: ['SCHULDSALDOPOLIS','SCHULDSALDO POLIS'], rek: null, type: 'uitgaven', tegel: 'schuldsaldo' , or: true },
   { keys: ['GEZINSPOLIS'], rek: null, type: 'uitgaven', tegel: 'gezinspolis' },
   { keys: ['WONINGPOLIS'], rek: null, type: 'uitgaven', tegel: 'woningpolis' },
   // Pensioen & ziekenfonds
-  { keys: ['PRICOS RI STORTING','PENSIOENSPAARREKENING','KBC PENSION SAVINGS FUND'], rek: null, type: 'uitgaven', tegel: 'pensioensparen' },
-  { keys: ['HELAN','ZIEKENFONDSBIJDRAGEN','CM ','MUTUALITE'], rek: null, type: 'uitgaven', tegel: 'ziekenfonds' },
-  { keys: ['ZORGKAS','VLAAMS AGENTSCHAP ZORG'], rek: null, type: 'uitgaven', tegel: 'zorgkas' },
+  { keys: ['PRICOS RI STORTING','PENSIOENSPAARREKENING','KBC PENSION SAVINGS FUND'], rek: null, type: 'uitgaven', tegel: 'pensioensparen' , or: true },
+  { keys: ['HELAN','ZIEKENFONDSBIJDRAGEN','CM ','MUTUALITE'], rek: null, type: 'uitgaven', tegel: 'ziekenfonds' , or: true },
+  { keys: ['ZORGKAS','VLAAMS AGENTSCHAP ZORG'], rek: null, type: 'uitgaven', tegel: 'zorgkas' , or: true },
   // Vakbond
-  { keys: ['NATIONAAL SYNDICAAT','NSPV','SYNDICALE PREMIE'], rek: null, type: 'uitgaven', tegel: 'vakbond' },
+  { keys: ['NATIONAAL SYNDICAAT','NSPV','SYNDICALE PREMIE'], rek: null, type: 'uitgaven', tegel: 'vakbond' , or: true },
   // Belastingen
-  { keys: ['FOD FINANCIEN','VLABEL','FB VLABEL','VERKEERSBELASTING','ONROERENDE'], rek: null, type: 'uitgaven', tegel: 'belastingen' },
+  { keys: ['FOD FINANCIEN','VLABEL','FB VLABEL','VERKEERSBELASTING','ONROERENDE'], rek: null, type: 'uitgaven', tegel: 'belastingen' , or: true },
   // Nutsbedrijven
-  { keys: ['ENECO','ENECO BELGIUM'], rek: null, type: 'uitgaven', tegel: 'elektriciteit' },
-  { keys: ['WATERGROEP','DE WATERGROEP'], rek: null, type: 'uitgaven', tegel: 'water' },
+  { keys: ['ENECO','ENECO BELGIUM'], rek: null, type: 'uitgaven', tegel: 'elektriciteit' , or: true },
+  { keys: ['WATERGROEP','DE WATERGROEP'], rek: null, type: 'uitgaven', tegel: 'water' , or: true },
   // Kinderopvang
-  { keys: ['VILLA DEUGENIET','LIAS '], rek: null, type: 'uitgaven', tegel: 'lias' },
-  { keys: ['HEYLEN','HUYGENS'], rek: null, type: 'uitgaven', tegel: 'creche' },
+  { keys: ['VILLA DEUGENIET','LIAS '], rek: null, type: 'uitgaven', tegel: 'lias' , or: true },
+  { keys: ['HEYLEN','HUYGENS'], rek: null, type: 'uitgaven', tegel: 'creche' , or: true },
   // Bankkosten & overige vaste (negeren / overige)
-  { keys: ['KBC BRUSSELS-BASISREKENING','KBC BRUSSELS-BUDGETREKENING','BIJDRAGE','KBC-PLUSREKENING','VERBRUIK'], rek: null, type: 'uitgaven', tegel: null },
+  { keys: ['KBC BRUSSELS-BASISREKENING','KBC BRUSSELS-BUDGETREKENING','BIJDRAGE','KBC-PLUSREKENING','VERBRUIK'], rek: null, type: 'uitgaven', tegel: null , or: true },
   { keys: ['ECOWERF'], rek: null, type: 'uitgaven', tegel: 'ecowerf' },
   { keys: ['KBC VERZEKERINGEN'], rek: null, type: 'uitgaven', tegel: null }, // fallback als geen polis-keyword
 
   // ── ABONNEMENTEN ─────────────────────────────────────────────────────────
   { keys: ['TELENET'], rek: null, type: 'abonnementen', tegel: 'telenet' },
   { keys: ['NETFLIX'], rek: null, type: 'abonnementen', tegel: 'netflix' },
-  { keys: ['DPG MEDIA','HET LAATSTE NIEUWS'], rek: null, type: 'abonnementen', tegel: 'hln' },
-  { keys: ['BOLCOM BV','DOORLOPEND ABONNEMENT','BOL.COM SELECT'], rek: null, type: 'abonnementen', tegel: 'bol' },
+  { keys: ['DPG MEDIA','HET LAATSTE NIEUWS'], rek: null, type: 'abonnementen', tegel: 'hln' , or: true },
+  { keys: ['BOLCOM BV','DOORLOPEND ABONNEMENT','BOL.COM SELECT'], rek: null, type: 'abonnementen', tegel: 'bol' , or: true },
   { keys: ['BASIC-FIT'], rek: null, type: 'abonnementen', tegel: 'basicfit' },
-  { keys: ['APPLE.COM BILL','FAMILEO'], rek: null, type: 'abonnementen', tegel: 'claude' },
+  { keys: ['APPLE.COM BILL','FAMILEO'], rek: null, type: 'abonnementen', tegel: 'claude' , or: true },
 
   // ── TANKEN ───────────────────────────────────────────────────────────────
-  { keys: ['LUKOIL','TOTAL ','TOTAL NB','TOTAL XB','DATS 24','Q8 ','ESSO','TEXACO','SHELL ','TINQ '], rek: null, type: 'uitgaven', tegel: 'tanken' },
+  { keys: ['LUKOIL','TOTAL ','TOTAL NB','TOTAL XB','DATS 24','Q8 ','ESSO','TEXACO','SHELL ','TINQ '], rek: null, type: 'uitgaven', tegel: 'tanken' , or: true },
 
   // ── BOODSCHAPPEN ─────────────────────────────────────────────────────────
-  { keys: ['COLRUYT','COLLECT&GO','OKAY '], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
-  { keys: ['DELHAIZE','ALBERT HEIJN'], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
+  { keys: ['COLRUYT','COLLECT&GO','OKAY '], rek: null, type: 'uitgaven', tegel: 'boodschappen' , or: true },
+  { keys: ['DELHAIZE','ALBERT HEIJN'], rek: null, type: 'uitgaven', tegel: 'boodschappen' , or: true },
   { keys: ['LIDL'], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
   { keys: ['ALDI'], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
-  { keys: ['CARREFOUR','CRF MKT','CRF HYP','CRF EXP'], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
+  { keys: ['CARREFOUR','CRF MKT','CRF HYP','CRF EXP'], rek: null, type: 'uitgaven', tegel: 'boodschappen', or: true },
   { keys: ['KRUIDVAT'], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
   { keys: ['RENMANS'], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
   { keys: ['BASILIEK'], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
-  { keys: ['BAKKERIJ','BROODMOLEN','BEKKERS'], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
+  { keys: ['BAKKERIJ','BROODMOLEN','BEKKERS'], rek: null, type: 'uitgaven', tegel: 'boodschappen', or: true },
+  { keys: ['CONFISERIE'], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
+  { keys: ['DELITRAITEUR','DELI TRAITEUR'], rek: null, type: 'uitgaven', tegel: 'boodschappen', or: true },
+  { keys: ['SPAR '], rek: null, type: 'uitgaven', tegel: 'boodschappen' },
 
   // ── ETEN ─────────────────────────────────────────────────────────────────
   { keys: ['MCDONALDS','MC DONALD','MC DONALDS','MCD FOOD'], rek: null, type: 'uitgaven', tegel: 'eten' },
@@ -7658,29 +7661,65 @@ const KBC_TEGEL_REGELS = [
   { keys: ['JBC'], rek: null, type: 'uitgaven', tegel: 'kledij' },
   { keys: ['C&A '], rek: null, type: 'uitgaven', tegel: 'kledij' },
   { keys: ['ZEEMAN'], rek: null, type: 'uitgaven', tegel: 'kledij' },
-  { keys: ['SHEIN','TEMU'], rek: null, type: 'uitgaven', tegel: 'kledij' },
+  { keys: ['SHEIN','TEMU'], rek: null, type: 'uitgaven', tegel: 'kledij', or: true },
   { keys: ['ASOS'], rek: null, type: 'uitgaven', tegel: 'kledij' },
-  { keys: ['H M ONLINE','HM ONLINE','OUTRANCE FASHION'], rek: null, type: 'uitgaven', tegel: 'kledij' },
-  { keys: ['SCHOENEN','VAN HAREN'], rek: null, type: 'uitgaven', tegel: 'kledij' },
+  { keys: ['H M ONLINE','HM ONLINE','OUTRANCE FASHION'], rek: null, type: 'uitgaven', tegel: 'kledij', or: true },
+  { keys: ['SCHOENEN','VAN HAREN','BENT SCHOEMEN'], rek: null, type: 'uitgaven', tegel: 'kledij', or: true },
   { keys: ['BOUTIQUE'], rek: null, type: 'uitgaven', tegel: 'kledij' },
-  { keys: ['AS ADVENTURE','ASADVENTURE','DECATHLON'], rek: null, type: 'uitgaven', tegel: 'kledij' },
+  { keys: ['AS ADVENTURE','ASADVENTURE','DECATHLON'], rek: null, type: 'uitgaven', tegel: 'kledij', or: true },
+  { keys: ['ADIDAS'], rek: null, type: 'uitgaven', tegel: 'kledij' },
+  { keys: ['BABEEWORLD'], rek: null, type: 'uitgaven', tegel: 'kledij' },
+  { keys: ['ETRIAS'], rek: null, type: 'uitgaven', tegel: 'kledij' },
+  { keys: ['NAOSHA'], rek: null, type: 'uitgaven', tegel: 'kledij' },
+  { keys: ['KURAGO'], rek: null, type: 'uitgaven', tegel: 'kledij' },
 
   // ── APOTHEEK / GEZONDHEID ─────────────────────────────────────────────────
-  { keys: ['APOTHEEK','APOTEEK','FARMALINE','MULTIPHARMA','MEDICARE-MARKET','MEDI-MARKET','FARMACIA'], rek: null, type: 'uitgaven', tegel: 'apotheek' },
+  { keys: ['APOTHEEK','APOTEEK','FARMALINE','MULTIPHARMA','MEDICARE-MARKET','MEDI-MARKET','FARMACIA'], rek: null, type: 'uitgaven', tegel: 'apotheek', or: true },
+  { keys: ['HUISARTS','DOKTER','GOED HULPMIDDELEN'], rek: null, type: 'uitgaven', tegel: 'apotheek', or: true },
 
   // ── ACTION / BOL ──────────────────────────────────────────────────────────
   { keys: ['ACTION'], rek: null, type: 'uitgaven', tegel: 'action' },
-  { keys: ['BOL.COM'], rek: null, type: 'uitgaven', tegel: 'bol' },
+  { keys: ['BOL.COM','BOLCOM BV'], rek: null, type: 'uitgaven', tegel: 'bol', or: true },
+  { keys: ['STICHTING MOLLIE'], rek: null, type: 'uitgaven', tegel: 'bol' },   // Bol.com betaalt via Mollie
+  { keys: ['YOURSURPRISE'], rek: null, type: 'uitgaven', tegel: 'bol' },
+  { keys: ['SMARTPHOTO'], rek: null, type: 'uitgaven', tegel: 'bol' },
+  { keys: ['IKEA'], rek: null, type: 'uitgaven', tegel: 'bol' },
+
+  // ── ETEN BUITEN ───────────────────────────────────────────────────────────
+  { keys: ['MCDONALDS','MC DONALD','MC DONALDS','MCD FOOD'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
+  { keys: ['QUICK '], rek: null, type: 'uitgaven', tegel: 'eten' },
+  { keys: ['PIZZA','PIZZA HUT','PIZZA.BE'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
+  { keys: ['TAKEAWAY','TAKEAWAY.COM'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
+  { keys: ['SUBWAY'], rek: null, type: 'uitgaven', tegel: 'eten' },
+  { keys: ['DSE ','DSE DIEST'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
+  { keys: ['ZODIAC'], rek: null, type: 'uitgaven', tegel: 'eten' },
+  { keys: ['HET WAAR GENOEGEN'], rek: null, type: 'uitgaven', tegel: 'eten' },
+  { keys: ['IJS ','IJS ROSSI','IJS*'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
+  { keys: ['FOYER','LSP*FOYER'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
+  { keys: ['CHURROS','EL CHURROS'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
+  { keys: ['DE BROODMOLEN'], rek: null, type: 'uitgaven', tegel: 'eten' },
+  { keys: ['VANGROOTLOON'], rek: null, type: 'uitgaven', tegel: 'eten' },
+  { keys: ['FOOD'], rek: null, type: 'uitgaven', tegel: 'eten' },
+  { keys: ['HORECA','RESTO ','RESTAURANT','FRITUUR','BRASSERIE','SANDWICH','PASTA'], rek: null, type: 'uitgaven', tegel: 'eten', or: true },
+
+  // ── UITSTAP / VRIJETIJD ───────────────────────────────────────────────────
+  { keys: ['PAKAWI','PLOPSA','KINDERBOERDERIJ','PRESTON PALACE','DOMEIN BOVY'], rek: null, type: 'uitgaven', tegel: 'uitstap', or: true },
+  { keys: ['DAP BEESTIG'], rek: null, type: 'uitgaven', tegel: 'uitstap' },
+
+  // ── BANKKOSTEN ────────────────────────────────────────────────────────────
+  { keys: ['KBC-PLUSREKENING','BIJDRAGE','KBC BRUSSELS-BASISREKENING','KBC BRUSSELS-BUDGETREKENING','VERBRUIK'], rek: null, type: 'uitgaven', tegel: null, or: true },
+
+  // ── PARKING ───────────────────────────────────────────────────────────────
+  { keys: ['EASYPARK','PARKING ','LADEUZE'], rek: null, type: 'uitgaven', tegel: 'overige', or: true },
 
   // ── VAPE / GAMING / POKER ─────────────────────────────────────────────────
-  { keys: ['VAPORSHOP','DAMPSHOP','LS DAMPSHOP','VAPO LOCO','VAPO '], rek: null, type: 'uitgaven', tegel: 'vape' },
-  { keys: ['BATTLE.NET','BATTLENET','BLIZZARD','RIOT GAMES','PLAYSTATION','SONY INTERACTIVE','STEAM ','XBOX ','NINTENDO'], rek: null, type: 'uitgaven', tegel: 'games' },
-  { keys: ['NATIONALE LOTERIJ','NATIONALELOTERIJ'], rek: null, type: 'uitgaven', tegel: 'games' },
-  { keys: ['POKERSTARS','POKER '], rek: null, type: 'uitgaven', tegel: 'poker' },
+  { keys: ['VAPORSHOP','DAMPSHOP','LS DAMPSHOP','VAPO LOCO','VAPO '], rek: null, type: 'uitgaven', tegel: 'vape', or: true },
+  { keys: ['BATTLE.NET','BATTLENET','BLIZZARD','RIOT GAMES','PLAYSTATION','SONY INTERACTIVE','STEAM ','XBOX ','NINTENDO'], rek: null, type: 'uitgaven', tegel: 'games', or: true },
+  { keys: ['NATIONALE LOTERIJ','NATIONALELOTERIJ'], rek: null, type: 'uitgaven', tegel: 'games', or: true },
+  { keys: ['POKERSTARS','POKER '], rek: null, type: 'uitgaven', tegel: 'poker', or: true },
 
   // ── DRANKAUTOMAAT ─────────────────────────────────────────────────────────
-  { keys: ['VENDINGWORK','VENDING ','NYX*VENDING'], rek: null, type: 'uitgaven', tegel: 'drankautomaat' },
-
+  { keys: ['VENDINGWORK','VENDING ','NYX*VENDING'], rek: null, type: 'uitgaven', tegel: 'drankautomaat', or: true },
 ];
 
 // Bekende eigen spaarrekeningen (negeren)
@@ -8048,9 +8087,12 @@ function importeerKbcCsv(inputEl) {
         let gekoppeld = false;
         for (const regel of KBC_TEGEL_REGELS) {
           if (regel.rek && regel.rek !== rek) continue;
-          // AND-matching: alle keys moeten aanwezig zijn (meer specifieke regels bovenaan)
+          // AND-matching voor regels met meerdere keys (bv. WOKRA-regels)
+          // OR-matching voor regels met or:true of met één key
           const oms = omschrijving.toUpperCase();
-          const match = regel.keys.every(k => oms.includes(k.toUpperCase()));
+          const match = (regel.or || regel.keys.length === 1)
+            ? regel.keys.some(k => oms.includes(k.toUpperCase()))
+            : regel.keys.every(k => oms.includes(k.toUpperCase()));
           if (!match) continue;
 
           if (regel.tegel === null) break; // → overige
@@ -8067,6 +8109,11 @@ function importeerKbcCsv(inputEl) {
           const doelBucket = resultaatPerMaand[doelMaandKey][rek];
 
           const isInkomst = bedrag > 0;
+          // Positieve bedragen op uitgaven-tegels negeren (ristorno's, terugboekingen)
+          if (isInkomst && regel.type === 'uitgaven') {
+            negeerLijst.push({ datum: row['Datum'], bedrag, label: naamTegenpartij || extractHandelsnaam(omschrijving), reden: 'Ristorno/terugboeking uitgaven' });
+            totaalNegeerd++; gekoppeld = true; break;
+          }
           const doelType  = isInkomst ? 'inkomsten' : regel.type;
           const tegelLabel = naamTegenpartij || extractHandelsnaam(omschrijving);
 
@@ -8206,20 +8253,21 @@ const BNP_TEGEL_REGELS = [
   { keys: ['POLITIEZONE','EINDEJAARSTOELAGE'],       type: 'inkomsten', tegel: 'eindejaarstoelage', verschuif: false },
   { keys: ['POLITIEZONE','VARIABELE BEZOLDIGINGEN'], type: 'inkomsten', tegel: 'onregelmatig',      verschuif: true  },
   { keys: ['POLITIEZONE','VASTE BEZOLDIGINGEN'],     type: 'inkomsten', tegel: 'loon',              verschuif: true  },
-  { keys: ['R.V.A./O.N.E.M.','R.V.A.','BREAKATWORK','ONEM'], type: 'inkomsten', tegel: 'rva' },
-  { keys: ['MY FAMILY VZW','GROEIPAKKET','GEZINSBIJSLAGEN','KINDEROPVANGTOESLAG'], type: 'inkomsten', tegel: 'extra' },
-  { keys: ['GROUP I.N.C','GROUP INC'], type: 'inkomsten', tegel: 'huur_appartement' },
+  { keys: ['R.V.A./O.N.','R.V.A.','BREAKATWORK','ONEM'], type: 'inkomsten', tegel: 'rva', or: true },
+  { keys: ['MY FAMILY VZW','GROEIPAKKET','GEZINSBIJSLAGEN','KINDEROPVANGTOESLAG'], type: 'inkomsten', tegel: 'extra', or: true },
+  { keys: ['GROUP I.N.C','GROUP INC'], type: 'inkomsten', tegel: 'huur_appartement', or: true },
   // ── LENINGEN & HYPOTHEEK ─────────────────────────────────────────────────
-  { keys: ['TERUGBETALING WOONKREDIET','WOONKREDIET','HYPOTHEEKLENING','INTEREST KREDIET'], type: 'uitgaven', tegel: 'lening_appartement' },
+  // OR-matching: TERUGBETALING WOONKREDIET of INTEREST KREDIET (ristorno's worden gefilterd via bedrag > 0)
+  { keys: ['TERUGBETALING WOONKREDIET','INTEREST KREDIET'], type: 'uitgaven', tegel: 'lening_appartement', or: true },
   // ── VERZEKERINGEN ─────────────────────────────────────────────────────────
   { keys: ['PENSION INVEST PLAN'], type: 'uitgaven', tegel: 'pensioensparen' },
-  { keys: ['AG INSURANCE','AG INSURANCES'], type: 'uitgaven', tegel: 'verzekering_appartement' },
+  { keys: ['AG INSURANCE','AG INSURANCES'], type: 'uitgaven', tegel: 'verzekering_appartement', or: true },
   // ── SYNDICUS / VME ────────────────────────────────────────────────────────
-  { keys: ['HEIKAPPER','VME RESIDENTIE','RESIDENTIE HEIKAPPER'], type: 'uitgaven', tegel: 'syndicus' },
+  { keys: ['HEIKAPPER','VME RESIDENTIE','RESIDENTIE HEIKAPPER'], type: 'uitgaven', tegel: 'syndicus', or: true },
   // ── ZIEKENFONDS ───────────────────────────────────────────────────────────
-  { keys: ['CHRISTELIJKE MUTUALITEIT','CM-','MUTUALITEIT'], type: 'uitgaven', tegel: 'ziekenfonds' },
+  { keys: ['CHRISTELIJKE MUTUALITEIT','CM-','MUTUALITEIT'], type: 'uitgaven', tegel: 'ziekenfonds', or: true },
   // ── VAKBOND ───────────────────────────────────────────────────────────────
-  { keys: ['NSPV','NATIONAAL SYNDICAAT','SYNDICALE PREMIE'], type: 'uitgaven', tegel: 'vakbond' },
+  { keys: ['NSPV','NATIONAAL SYNDICAAT','SYNDICALE PREMIE'], type: 'uitgaven', tegel: 'vakbond', or: true },
   // ── BELASTINGEN ───────────────────────────────────────────────────────────
   { keys: ['VLAAMSE BELASTINGDIENST','FOD FINANCIEN','VLABEL'], type: 'uitgaven', tegel: 'belastingen' },
   // ── ABONNEMENTEN ──────────────────────────────────────────────────────────
@@ -8235,11 +8283,19 @@ const BNP_TEGEL_REGELS = [
   // ── BOODSCHAPPEN ─────────────────────────────────────────────────────────
   { keys: ['SPAR ','DELHAIZE','ALDI','COLRUYT','CARREFOUR','LIDL','KRUIDVAT','ALBERT HEIJN','RENMANS'], type: 'uitgaven', tegel: 'boodschappen' },
   // ── APOTHEEK / DROGIST ───────────────────────────────────────────────────
-  { keys: ['APOTHEEK','PHARMACIE','FARMALINE','MULTIPHARMA','MEDICARE','MEDI-MARKET'], type: 'uitgaven', tegel: 'apotheek' },
+  { keys: ['APOTHEEK','PHARMACIE','FARMALINE','MULTIPHARMA','MEDICARE','MEDI-MARKET'], type: 'uitgaven', tegel: 'apotheek', or: true },
+  { keys: ['HUISARTS','DOKTER '], type: 'uitgaven', tegel: 'apotheek', or: true },
   // ── ETEN ─────────────────────────────────────────────────────────────────
-  { keys: ['MCDONALDS','MC DONALD','MC DONALDS','QUICK ','PIZZA','TAKEAWAY','SUBWAY','DELITRAITEUR','DSE ','ZODIAC','BASILIEK'], type: 'uitgaven', tegel: 'eten' },
+  { keys: ['MCDONALDS','MC DONALD','MC DONALDS','QUICK ','PIZZA','TAKEAWAY','SUBWAY','DELITRAITEUR','DSE ','ZODIAC','BASILIEK'], type: 'uitgaven', tegel: 'eten', or: true },
+  { keys: ['HET WAAR GENOEGEN','IJS ','IJS ROSSI','CHURROS','VANGROOTLOON','DE BROODMOLEN','FOYER'], type: 'uitgaven', tegel: 'eten', or: true },
+  // ── UITSTAP / VRIJETIJD ──────────────────────────────────────────────────
+  { keys: ['PAKAWI','PLOPSA','KINDERBOERDERIJ','PRESTON PALACE','DOMEIN BOVY','DAP BEESTIG'], type: 'uitgaven', tegel: 'uitstap', or: true },
+  // ── KLEDIJ (extra) ────────────────────────────────────────────────────────
+  { keys: ['ADIDAS','BABEEWORLD','ETRIAS','NAOSHA','KURAGO','BENT SCHOEMEN'], type: 'uitgaven', tegel: 'kledij', or: true },
+  // ── BOL / CADEAUS ─────────────────────────────────────────────────────────
+  { keys: ['BOLCOM BV','STICHTING MOLLIE','YOURSURPRISE','SMARTPHOTO','IKEA'], type: 'uitgaven', tegel: 'bol', or: true },
   // ── BANKKOSTEN (negeren) ──────────────────────────────────────────────────
-  { keys: ['MAANDELIJKSE BIJDRAGE EASY GUIDE','EASY GUIDE PACK','KOSTEN IN VERBAND MET DE REKENING','BANKKOSTEN'], type: 'uitgaven', tegel: null },
+  { keys: ['MAANDELIJKSE BIJDRAGE EASY GUIDE','EASY GUIDE PACK','KOSTEN IN VERBAND MET DE REKENING','BANKKOSTEN'], type: 'uitgaven', tegel: null, or: true },
 ];
 
 // Extract handelsnaam uit BNP details/mededeling/naam
@@ -8382,8 +8438,10 @@ function importeerBnpCsv(inputEl) {
         let gekoppeld = false;
 
         for (const regel of BNP_TEGEL_REGELS) {
-          // AND-matching: alle keys moeten aanwezig zijn
-          const match = regel.keys.every(k => zoekTekst.includes(k.toUpperCase()));
+          // AND-matching voor multi-key regels, OR voor single-key of or:true
+          const match = (regel.or || regel.keys.length === 1)
+            ? regel.keys.some(k => zoekTekst.includes(k.toUpperCase()))
+            : regel.keys.every(k => zoekTekst.includes(k.toUpperCase()));
           if (!match) continue;
 
           if (regel.tegel === null) {
@@ -8402,6 +8460,11 @@ function importeerBnpCsv(inputEl) {
           const doelBucket = resultaatPerMaand[doelMaandKey][rek];
 
           const isInkomst = bedrag > 0;
+          // Positieve bedragen op uitgaven-tegels negeren (ristorno's, terugboekingen)
+          if (isInkomst && regel.type === 'uitgaven') {
+            negeerLijst.push({ datum, bedrag, label: extractBnpHandelsnaam(details, mededeling, naamTegenpartij), reden: 'Ristorno/terugboeking uitgaven' });
+            totaalNegeerd++; gekoppeld = true; break;
+          }
           const doelType  = isInkomst ? 'inkomsten' : regel.type;
           const tegelLabel = extractBnpHandelsnaam(details, mededeling, naamTegenpartij);
 
